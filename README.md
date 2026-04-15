@@ -7,6 +7,7 @@ ZELTA is a Behavioral Quantitative (BQ) engine built for the OAU student ecosyst
 ---
 
 ## 🧠 The BQ Framework
+
 ZELTA operates on a four-layer intelligence stack as defined in our technical roadmap:
 
 1.  **Bayse Intelligence Layer:** Pulls real-time order book data to measure "Crowd Fear."
@@ -17,20 +18,24 @@ ZELTA operates on a four-layer intelligence stack as defined in our technical ro
 ---
 
 ## 🛠️ Tech Stack
-* **Backend:** FastAPI (Python 3.12)
-* **Intelligence:** Bayse Markets API (REST + WebSockets)
-* **AI/NLP:** Gemini 1.5 Pro (Vertex AI)
-* **Deployment:** Google Cloud Run
-* **Real-time:** WebSockets for live stress monitoring
-* **Frontend:** React + TailwindCSS + Next.js
+
+- **Backend:** FastAPI (Python 3.12)
+- **Intelligence:** Bayse Markets API (REST + WebSockets)
+- **AI/NLP:** Gemini 1.5 Pro (Vertex AI)
+- **Deployment:** Google Cloud Run
+- **Real-time:** WebSockets for live stress monitoring
+- **Frontend:** React + TailwindCSS + Next.js
 
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Environment Setup
+
 Create a `.env` file in the root directory:
+
 ```env
 BAYSE_PUBLIC_KEY=your_public_key
 BAYSE_PRIVATE_KEY=your_private_key
 GEMINI_API_KEY=your_google_api_key
+```
