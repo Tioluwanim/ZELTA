@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { Activity, Sparkles, MessageSquare, PiggyBank, Target } from "lucide-react";
 import { useWallet } from "@/hooks/zelta";
@@ -10,6 +11,7 @@ import SimulationResults from "./components/SimulationResults";
 import type { SideHustleSimRequest, SavingsSimRequest } from "@/types/zelta";
 
 function SimulationsPage() {
+  const router = useRouter();
   // Form states
   const [activeTab, setActiveTab] = useState<"side-hustle" | "savings">("side-hustle");
 
@@ -404,8 +406,12 @@ function SimulationsPage() {
         </p>
       </div>
 
-      {/* FLOATING BUTTON */}
-      <button className="fixed bottom-6 right-6 bg-emerald-500 rounded-full w-14 h-14 z-50 flex items-center justify-center shadow-lg hover:bg-emerald-400 transition-all">
+      {/* FLOATING BUTTON — opens co-pilot */}
+      <button
+        onClick={() => router.push("/dashboard/co-pilot")}
+        className="fixed bottom-6 right-6 bg-emerald-500 rounded-full w-14 h-14 z-50 flex items-center justify-center shadow-lg hover:bg-emerald-400 transition-all"
+        title="Open Co-pilot"
+      >
         <MessageSquare className="text-white w-5 h-5" />
       </button>
     </div>

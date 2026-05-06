@@ -67,9 +67,10 @@ export default function Sidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`rounded-2xl px-3 py-3 text-md font-bold transition flex flex-col lg:flex-row gap-2  lg:gap-4 items-center ${pathName === item.href ? "bg-[#10b981] text-white" : ""}     `}
+              className={`rounded-2xl px-3 py-3 text-md font-bold transition flex flex-col lg:flex-row gap-2  lg:gap-4 items-center ${pathName === item.href || (item.href !== "/dashboard" && pathName.startsWith(item.href)) ? "bg-[#10b981] text-white" : "hover:bg-gray-100"}     `}
             >
               <span>{item.icon}</span>
+              <span className="text-[10px] lg:hidden">{item.label}</span>
               <span className="hidden lg:block text-[15px]">{item.label} </span>
             </Link>
           ))}

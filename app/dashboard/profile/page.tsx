@@ -308,8 +308,11 @@ function ProfileContent() {
 
           {/* Sign Out */}
           <button
-            onClick={() => {
-              signOut(auth);
+            onClick={async () => {
+              await signOut(auth);
+              // Clear the session cookie so middleware redirects to /login
+              document.cookie = "zelta_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+              window.location.href = "/login";
             }}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-300 bg-white py-4 text-sm font-semibold text-red-500 transition hover:bg-red-50"
           >
