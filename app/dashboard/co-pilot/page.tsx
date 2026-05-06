@@ -172,10 +172,11 @@ export default function CopilotPage() {
       },
       {
         title: "Stress Index",
-        value: stress.data
+        // combined_index is already 0-100; guard against NaN with isFinite
+        value: stress.data && Number.isFinite(stress.data.combined_index)
           ? `${Math.round(stress.data.combined_index)}/100`
           : "—",
-        color: stress.data
+        color: stress.data && Number.isFinite(stress.data.combined_index)
           ? stress.data.combined_index > 60
             ? "text-red-500"
             : stress.data.combined_index > 30
@@ -185,7 +186,8 @@ export default function CopilotPage() {
       },
       {
         title: "Bayse Fear",
-        value: bayse.data
+        // raw_crowd_stress is already 0-100 — do NOT multiply by 100
+        value: bayse.data?.stress && Number.isFinite(bayse.data.stress.raw_crowd_stress)
           ? `${Math.round(bayse.data.stress.raw_crowd_stress)}%`
           : "—",
         color: "text-orange-400",

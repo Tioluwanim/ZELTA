@@ -39,11 +39,14 @@ function SimulationsPage() {
   const sideHustleSim = useSideHustleSimulation();
   const savingsSim = useSavingsSimulation();
 
-  // Calculate derived values
-  const freeCash = walletData?.free_cash || 0;
-  const stressIndex = stressData?.combined_index || 0;
-  const bayseFear = bayseData?.stress?.raw_crowd_stress || 0;
-  const zeltaModel = bayseData?.stress ? 100 - bayseData.stress.raw_crowd_stress : 0;
+  // FIX: guard against null/undefined/NaN before arithmetic.
+  // raw_crowd_stress is already 0-100 from the backend stress monitor.
+  const freeCash = walletData?.free_cash ?? 0;
+  const stressIndex = stressData?.combined_index ?? 0;
+  const rawCrowdStress = bayseData?.stress?.raw_crowd_stress;
+  const bayseFear  = Number.isFinite(rawCrowdStress) ? Math.round(rawCrowdStress as number) : 0;
+  // ZELTA model ≈ rational probability = 100 - crowd fear
+  const zeltaModel = Number.isFinite(rawCrowdStress) ? Math.round(100 - (rawCrowdStress as number)) : 0;
 
   const handleSideHustleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

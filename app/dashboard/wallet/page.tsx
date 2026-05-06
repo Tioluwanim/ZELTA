@@ -154,7 +154,7 @@ function AddExpenseModal({ onClose, onSuccess }: { onClose: () => void; onSucces
           <label className="mb-1.5 block text-sm font-semibold text-gray-700">Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)}
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-rose-400">
-            {["food","transport","data","clothing","entertainment","health","education","other"].map((c) => (
+            {["food","transport","data","education","entertainment","utilities","other"].map((c) => (
               <option key={c} value={c}>{c.replace(/\b\w/g,(l)=>l.toUpperCase())}</option>
             ))}
           </select>
@@ -194,7 +194,8 @@ function LockGoalModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
     try {
       await apiFetch("/api/wallet/goal", {
         method: "POST",
-        body: JSON.stringify({ label: label.trim(), amount: Number(amount), unlock_date: unlockDate, description: description || undefined }),
+        // Backend expects ISO datetime string for unlock_date
+        body: JSON.stringify({ label: label.trim(), amount: Number(amount), unlock_date: new Date(unlockDate).toISOString(), description: description || undefined }),
       });
       onSuccess(); onClose();
     } catch (err) {
