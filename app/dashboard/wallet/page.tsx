@@ -36,10 +36,30 @@ function ModalShell({ title, icon, onClose, children }: {
   );
 }
 
+// Backend enum for the `source` field (shared by both income + expense endpoints)
+const SOURCES = [
+  { value: "side_hustle",      label: "Side Hustle" },
+  { value: "parent_transfer",  label: "Parent Transfer" },
+  { value: "bursary",          label: "Bursary" },
+  { value: "savings",          label: "Savings" },
+  { value: "investment",       label: "Investment" },
+  { value: "other",            label: "Other" },
+] as const;
+
+const EXPENSE_SOURCES = [
+  { value: "food",             label: "Food" },
+  { value: "transport",        label: "Transport" },
+  { value: "data",             label: "Data / Airtime" },
+  { value: "education",        label: "Education" },
+  { value: "entertainment",    label: "Entertainment" },
+  { value: "utilities",        label: "Utilities" },
+  { value: "other",            label: "Other" },
+] as const;
+
 // ─── Add Income Modal ─────────────────────────────────────────────
 function AddIncomeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("salary");
+  const [source, setSource] = useState<string>("side_hustle");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +71,11 @@ function AddIncomeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
     try {
       await apiFetch("/api/wallet/income", {
         method: "POST",
-        body: JSON.stringify({ amount: Number(amount), category, description: description || undefined }),
+        body: JSON.stringify({
+          amount: Number(amount),
+          source,
+          description: description.trim() || undefined,
+        }),
       });
       onSuccess(); onClose();
     } catch (err) {
@@ -69,11 +93,11 @@ function AddIncomeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-700">Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}
+          <label className="mb-1.5 block text-sm font-semibold text-gray-700">Source</label>
+          <select value={source} onChange={(e) => setSource(e.target.value)}
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-emerald-400">
-            {["salary","side_hustle","gift","freelance","investment","other"].map((c) => (
-              <option key={c} value={c}>{c.replace("_"," ").replace(/\b\w/g,(l)=>l.toUpperCase())}</option>
+            {SOURCES.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </select>
         </div>
