@@ -15,10 +15,10 @@ export default function Bayse() {
 
   // bayse_crowd_fear and bayse_zelta_model are 0-1 decimals from backend
   // Convert to 0-100 for display
-  const crowdFear = Number(data.bayse_crowd_fear ?? 0) * 100;
-  const zeltaModel = Number(data.bayse_zelta_model ?? 0) * 100;
+  const crowdFear = Number(data.bayse_crowd_fear ?? 0);
+  const zeltaModel = Number(data.bayse_zelta_model ?? 0);
   const gapRaw = Number(data.bayse_gap ?? 0);
-  const gap = Math.abs(gapRaw) * 100;
+  const gap = Math.abs(gapRaw);
 
   const comparison =
     crowdFear > zeltaModel

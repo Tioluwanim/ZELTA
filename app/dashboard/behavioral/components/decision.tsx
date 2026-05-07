@@ -12,9 +12,9 @@ export default function Decision() {
   if (loading) return <LoadingState text="Loading decision snapshot..." />;
 
   // ✅ Safe + clamped values (same philosophy as Active.tsx)
-  const rationalPct = Math.min(Math.max(Math.round(Number(data.rational_pct ?? 0) * 100), 0), 100);
-  const behavioralPct = Math.min(Math.max(Math.round(Number(data.behavioral_pct ?? 0) * 100), 0), 100);
-  const confidenceGap = Math.round(Math.max(Number(data.decision_gap ?? 0) * 100, 0));
+  const rationalPct = Math.min(Math.max(Math.round(Number(data.rational_pct ?? 0)), 0), 100);
+  const behavioralPct = Math.min(Math.max(Math.round(Number(data.behavioral_pct ?? 0)), 0), 100);
+  const confidenceGap = Math.round(Math.max(Number(data.decision_gap ?? 0), 0));
 
   return (
     <section className="mt-3 w-full rounded-2xl border border-gray-100 bg-white pb-6">
