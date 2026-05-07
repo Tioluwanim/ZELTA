@@ -21,36 +21,31 @@ function Dashboard() {
 
   const intel = intelligence.data;
 
-  // ── Stress values ────────────────────────────────────────────────
-  // /api/stress StressData now uses stress_index (not combined_index)
+  // ── Stress ──────────────────────────────────────────────────────
+  // /api/stress StressOnlyResponse uses stress_index (0-100)
+  // /api/intelligence also exposes stress_index (mapped from stress.combined_index)
   const stressIndex = stress.data?.stress_index ?? intel?.stress_index;
   const stressLevel = stress.data?.level ?? intel?.stress_level;
   const stressLabel = stress.data?.label ?? intel?.stress_label;
 
-  // ── Bayse Fear % ─────────────────────────────────────────────────
-  // /api/bayse/stress returns crowd_stress (0-100) — NOT raw_crowd_stress
-  // /api/intelligence returns crowd_yes which is crowd_yes_price (0-1 decimal)
+  // ── Bayse Fear % ────────────────────────────────────────────────
+  // /api/bayse/stress returns crowd_stress (0-100) — use this as the primary fear signal.
+  // /api/intelligence crowd_yes = crowd_yes_price (0-1 decimal) → × 100 for fallback.
   const bayseFearPct: number = (() => {
     const cs = bayse.data?.stress?.crowd_stress;
-    if (cs != null && Number.isFinite(cs)) return Math.round(cs); // already 0-100
+    if (cs != null && Number.isFinite(cs)) return Math.round(cs);       // already 0-100
     const cy = intel?.crowd_yes;
     if (cy != null && Number.isFinite(cy)) return Math.round(cy * 100); // 0-1 → %
     return 0;
   })();
 
-  // ── Bayse Primary % ─────────────────────────────────────────────
-  // bayse_primary from /api/stress (or /api/intelligence) is a 0-1 decimal
-  const baysePrimaryPct: number = (() => {
-    const bp = stress.data?.bayse_primary ?? intel?.bayse_primary;
-    return bp != null && Number.isFinite(bp) ? Math.round(bp * 100) : 0;
-  })();
-
-  // ── Market Probability % ────────────────────────────────────────
-  // market_probability from /api/stress (or /api/intelligence) is a 0-1 decimal
-  const marketProbPct: number = (() => {
-    const mp = stress.data?.market_probability ?? intel?.market_probability;
-    return mp != null && Number.isFinite(mp) ? Math.round(mp * 100) : 0;
-  })();
+  // ── StressIndexCard MiniStats ────────────────────────────────────
+  // "Bayse Crowd" = crowd fear (what the crowd is pricing in)
+  // "Zelta Model" = 100 - crowd fear (what the rational model says — the complement)
+  // Do NOT use bayse_primary / market_probability — those are internal AI weighting
+  // decimals (0-1) that are often 0.0 or 0.5 defaults and mean nothing to the user.
+  const crowdStatPct  = bayseFearPct;               // 0-100 already
+  const modelStatPct  = Math.max(0, 100 - bayseFearPct); // rational complement
 
   // ── Market title ────────────────────────────────────────────────
   const marketTitle =
@@ -58,7 +53,8 @@ function Dashboard() {
     bayse.data?.stress?.market_title ??
     "Bayse Market";
 
-  // ── Verdict (allocation.verdict is primary — drives card heading) ─
+  // ── Verdict ──────────────────────────────────────────────────────
+  // allocation.verdict is the primary verdict (INVEST / SAVE / HOLD)
   const verdictLabel = intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
 
   const displayName = profile.data?.name || "there";
@@ -86,7 +82,7 @@ function Dashboard() {
         />
 
         <main className="pb-8 space-y-3">
-          {/* Bayse Market fear signal — crowd_stress is already 0-100 */}
+          {/* Bayse market fear — crowd_stress is already 0-100 */}
           <MarketAlert
             crowd_yes_pct={bayseFearPct}
             bayse_market={marketTitle}
@@ -94,13 +90,13 @@ function Dashboard() {
             error={null}
           />
 
-          {/* Stress index card */}
+          {/* Stress index — bayse_crowd_pct and zelta_model_pct are both 0-100 */}
           <StressIndexCard
             stress_index={stressIndex}
             stress_level={stressLevel}
             stress_label={stressLabel}
-            bayse_primary_pct={baysePrimaryPct}
-            market_probability_pct={marketProbPct}
+            bayse_primary_pct={crowdStatPct}
+            market_probability_pct={modelStatPct}
             loading={globalLoading && !intel}
             error={null}
           />
@@ -113,7 +109,7 @@ function Dashboard() {
             error={null}
           />
 
-          {/* Rational vs behavioural confidence — all values already 0-100 integers */}
+          {/* rational_pct, behavioral_pct, confidence_gap are all 0-100 floats */}
           <DecisionScoreCard
             confidence_gap={intel?.confidence_gap}
             bias_confidence={intel?.bias_confidence}
