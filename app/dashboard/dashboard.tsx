@@ -11,55 +11,55 @@ import StressIndexCard from "./StressIndexCard";
 import { useZelta } from "@/context/zeltaContext";
 
 const hour = new Date().getHours();
-const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+const greeting =
+  hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
 function Dashboard() {
-  const { intelligence, globalError, globalLoading, retryAll, profile, stress, bayse } = useZelta();
+  const { intelligence, globalError, globalLoading, retryAll, profile, stress, bayse } =
+    useZelta();
   const [errorDismissed, setErrorDismissed] = useState(false);
 
-  const {
-    stress_index, stress_level, stress_label,
-    active_bias, bias_explanation,
-    confidence_gap, crowd_yes, bayse_market, market_probability,
-    bias_confidence, rational_pct, behavioral_pct,
-    invest_ngn, save_ngn, hold_ngn, allocation_plain,
-  } = intelligence.data || {};
+  const intel = intelligence.data;
 
-  const stressIndex = stress.data?.combined_index ?? stress_index;
-  const stressLevel = stress.data?.level ?? stress_level;
-  const stressLabel = stress.data?.label ?? stress_label;
+  // ── Stress values ────────────────────────────────────────────────
+  // /api/stress StressData now uses stress_index (not combined_index)
+  const stressIndex = stress.data?.stress_index ?? intel?.stress_index;
+  const stressLevel = stress.data?.level ?? intel?.stress_level;
+  const stressLabel = stress.data?.label ?? intel?.stress_label;
 
-  // FIX: raw_crowd_stress is already 0-100 from the backend stress monitor.
-  // crowd_yes in IntelligenceData is a 0-1 decimal (crowd_yes_price from Bayse).
-  // We normalise both to a plain 0-100 integer here so child components
-  // never need to multiply/divide themselves.
-  const bayseFearPct: number =
-    bayse.data?.stress?.raw_crowd_stress != null
-      ? Math.round(bayse.data.stress.raw_crowd_stress)         // already 0-100
-      : crowd_yes != null
-      ? Math.round(crowd_yes * 100)                            // 0-1 → 0-100
-      : 0;
+  // ── Bayse Fear % ─────────────────────────────────────────────────
+  // /api/bayse/stress returns crowd_stress (0-100) — NOT raw_crowd_stress
+  // /api/intelligence returns crowd_yes which is crowd_yes_price (0-1 decimal)
+  const bayseFearPct: number = (() => {
+    const cs = bayse.data?.stress?.crowd_stress;
+    if (cs != null && Number.isFinite(cs)) return Math.round(cs); // already 0-100
+    const cy = intel?.crowd_yes;
+    if (cy != null && Number.isFinite(cy)) return Math.round(cy * 100); // 0-1 → %
+    return 0;
+  })();
 
-  // bayse_primary from /api/stress is a 0-1 decimal (the bayse stress component).
-  const baysePrimaryPct: number =
-    stress.data?.bayse_primary != null
-      ? Math.round(stress.data.bayse_primary * 100)
-      : intelligence.data?.bayse_primary != null
-      ? Math.round(intelligence.data.bayse_primary * 100)
-      : 0;
+  // ── Bayse Primary % ─────────────────────────────────────────────
+  // bayse_primary from /api/stress (or /api/intelligence) is a 0-1 decimal
+  const baysePrimaryPct: number = (() => {
+    const bp = stress.data?.bayse_primary ?? intel?.bayse_primary;
+    return bp != null && Number.isFinite(bp) ? Math.round(bp * 100) : 0;
+  })();
 
-  // market_probability from /api/stress is a 0-1 decimal.
-  const marketProbPct: number =
-    stress.data?.market_probability != null
-      ? Math.round(stress.data.market_probability * 100)
-      : market_probability != null
-      ? Math.round(market_probability * 100)
-      : 0;
+  // ── Market Probability % ────────────────────────────────────────
+  // market_probability from /api/stress (or /api/intelligence) is a 0-1 decimal
+  const marketProbPct: number = (() => {
+    const mp = stress.data?.market_probability ?? intel?.market_probability;
+    return mp != null && Number.isFinite(mp) ? Math.round(mp * 100) : 0;
+  })();
 
-  const marketTitle = bayse_market ?? bayse.data?.stress?.market_title ?? "Bayse Market";
+  // ── Market title ────────────────────────────────────────────────
+  const marketTitle =
+    intel?.bayse_market ??
+    bayse.data?.stress?.market_title ??
+    "Bayse Market";
 
-  // verdict drives the WeeklyVerdictCard heading (INVEST / SAVE / HOLD)
-  const verdictLabel = intelligence.data?.verdict ?? intelligence.data?.decision_verdict ?? "HOLD";
+  // ── Verdict (allocation.verdict is primary — drives card heading) ─
+  const verdictLabel = intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
 
   const displayName = profile.data?.name || "there";
 
@@ -74,52 +74,63 @@ function Dashboard() {
         />
       )}
 
-      <DashboardOverlay show={globalLoading && !intelligence.data} message="Loading your dashboard..." />
+      <DashboardOverlay
+        show={globalLoading && !intel}
+        message="Loading your intelligence..."
+      />
 
       <section className="space-y-6">
-        <PageHeader title={`${greeting}, ${displayName}`} description="here's your financial intelligence for today" />
+        <PageHeader
+          title={`${greeting}, ${displayName}`}
+          description="here's your financial intelligence for today"
+        />
 
         <main className="pb-8 space-y-3">
+          {/* Bayse Market fear signal — crowd_stress is already 0-100 */}
           <MarketAlert
             crowd_yes_pct={bayseFearPct}
             bayse_market={marketTitle}
-            loading={globalLoading}
+            loading={globalLoading && !intel}
             error={null}
           />
 
+          {/* Stress index card */}
           <StressIndexCard
             stress_index={stressIndex}
             stress_level={stressLevel}
             stress_label={stressLabel}
             bayse_primary_pct={baysePrimaryPct}
             market_probability_pct={marketProbPct}
-            loading={globalLoading}
+            loading={globalLoading && !intel}
             error={null}
           />
 
+          {/* Active cognitive bias */}
           <BiasAlertCard
-            active_bias={active_bias}
-            bias_explanation={bias_explanation}
-            loading={intelligence.loading}
+            active_bias={intel?.active_bias}
+            bias_explanation={intel?.bias_explanation}
+            loading={intelligence.loading && !intel}
             error={null}
           />
 
+          {/* Rational vs behavioural confidence — all values already 0-100 integers */}
           <DecisionScoreCard
-            confidence_gap={confidence_gap}
-            bias_confidence={bias_confidence}
-            rational_pct={rational_pct}
-            behavioral_pct={behavioral_pct}
-            loading={intelligence.loading}
+            confidence_gap={intel?.confidence_gap}
+            bias_confidence={intel?.bias_confidence}
+            rational_pct={intel?.rational_pct}
+            behavioral_pct={intel?.behavioral_pct}
+            loading={intelligence.loading && !intel}
             error={null}
           />
 
+          {/* Weekly allocation verdict */}
           <WeeklyVerdictCard
             verdict={verdictLabel}
-            invest_ngn={invest_ngn ?? 0}
-            save_ngn={save_ngn ?? 0}
-            hold_ngn={hold_ngn ?? 0}
-            allocation_plain={allocation_plain ?? ""}
-            loading={intelligence.loading}
+            invest_ngn={intel?.invest_ngn ?? 0}
+            save_ngn={intel?.save_ngn ?? 0}
+            hold_ngn={intel?.hold_ngn ?? 0}
+            allocation_plain={intel?.allocation_plain ?? ""}
+            loading={intelligence.loading && !intel}
           />
         </main>
       </section>

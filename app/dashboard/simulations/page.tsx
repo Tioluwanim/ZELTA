@@ -3,19 +3,14 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { Activity, Sparkles, MessageSquare, PiggyBank, Target } from "lucide-react";
-import { useWallet } from "@/hooks/zelta";
-import { useStress } from "@/hooks/zelta";
-import { useBayseSignals } from "@/hooks/zelta";
-import { useSideHustleSimulation, useSavingsSimulation } from "@/hooks/zelta";
+import { useWallet, useStress, useBayseSignals, useSideHustleSimulation, useSavingsSimulation } from "@/hooks/zelta";
 import SimulationResults from "./components/SimulationResults";
 import type { SideHustleSimRequest, SavingsSimRequest } from "@/types/zelta";
 
 function SimulationsPage() {
   const router = useRouter();
-  // Form states
   const [activeTab, setActiveTab] = useState<"side-hustle" | "savings">("side-hustle");
 
-  // Side hustle form
   const [sideHustleForm, setSideHustleForm] = useState<SideHustleSimRequest>({
     investment_amount: 0,
     hustle_type: "catering",
@@ -25,28 +20,27 @@ function SimulationsPage() {
     fixed_costs: 0,
   });
 
-  // Savings form
   const [savingsForm, setSavingsForm] = useState<SavingsSimRequest>({
     weekly_savings_amount: 0,
     target_amount: 0,
     upcoming_obligations: [],
   });
 
-  // API hooks
   const { data: walletData, loading: walletLoading } = useWallet();
   const { data: stressData } = useStress();
   const { data: bayseData } = useBayseSignals();
   const sideHustleSim = useSideHustleSimulation();
   const savingsSim = useSavingsSimulation();
 
-  // FIX: guard against null/undefined/NaN before arithmetic.
-  // raw_crowd_stress is already 0-100 from the backend stress monitor.
   const freeCash = walletData?.free_cash ?? 0;
-  const stressIndex = stressData?.combined_index ?? 0;
-  const rawCrowdStress = bayseData?.stress?.raw_crowd_stress;
-  const bayseFear  = Number.isFinite(rawCrowdStress) ? Math.round(rawCrowdStress as number) : 0;
-  // ZELTA model ≈ rational probability = 100 - crowd fear
-  const zeltaModel = Number.isFinite(rawCrowdStress) ? Math.round(100 - (rawCrowdStress as number)) : 0;
+
+  // /api/stress now returns stress_index (not combined_index) per updated StressData type
+  const stressIndex = stressData?.stress_index ?? 0;
+
+  // /api/bayse/stress returns crowd_stress (0-100) — NOT raw_crowd_stress
+  const rawCrowdStress = bayseData?.stress?.crowd_stress;
+  const bayseFear  = Number.isFinite(rawCrowdStress) ? Math.round(rawCrowdStress!) : 0;
+  const zeltaModel = Number.isFinite(rawCrowdStress) ? Math.round(100 - rawCrowdStress!) : 0;
 
   const handleSideHustleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,39 +58,44 @@ function SimulationsPage() {
 
   return (
     <div className="px-3 lg:px-0">
-      {/* HEADER */}
       <PageHeader
         title="Portfolio Simulations"
         description="Practice before you commit — Bayesian Monte Carlo projection"
       />
 
-      {/* STATS */}
+      {/* Current Financial State */}
       <div className="bg-white border-2 border-gray-100 mt-3 w-full rounded-2xl p-4">
-        <h2 className="text-gray-800 font-bold text-sm md:text-md">
+        <h2 className="text-gray-800 font-bold text-sm md:text-base">
           Current Financial State
         </h2>
-
         <section className="grid grid-cols-2 gap-3 mt-4 lg:flex lg:gap-2">
           {[
             {
               title: "Free Cash",
               value: walletLoading ? "Loading..." : `₦${freeCash.toLocaleString()}`,
-              color: "text-gray-800"
+              color: "text-gray-800",
             },
             {
               title: "Stress Index",
               value: `${Math.round(stressIndex)}/100`,
-              color: stressIndex > 60 ? "text-red-500" : stressIndex > 30 ? "text-yellow-500" : "text-emerald-500",
+              color:
+                stressIndex > 60
+                  ? "text-red-500"
+                  : stressIndex > 30
+                  ? "text-yellow-500"
+                  : "text-emerald-500",
             },
             {
               title: "Bayse Fear",
-              value: `${Math.round(bayseFear)}%`,
-              color: "text-orange-400"
+              // crowd_stress is already 0-100; guard against NaN
+              value: bayseData ? `${bayseFear}%` : "—",
+              color: "text-orange-400",
             },
             {
               title: "ZELTA Model",
-              value: `${Math.round(zeltaModel)}%`,
-              color: "text-emerald-500"
+              // Rational side: 100 - crowd_stress
+              value: bayseData ? `${zeltaModel}%` : "—",
+              color: "text-emerald-500",
             },
           ].map((item, i) => (
             <div
@@ -104,17 +103,14 @@ function SimulationsPage() {
               className="border-2 border-gray-100 bg-white rounded-2xl p-3 flex flex-col justify-center lg:w-[40%]"
             >
               <h3 className="text-gray-500 text-xs md:text-sm">{item.title}</h3>
-              <p className={`font-bold text-lg md:text-xl ${item.color}`}>
-                {item.value}
-              </p>
+              <p className={`font-bold text-lg md:text-xl ${item.color}`}>{item.value}</p>
             </div>
           ))}
         </section>
       </div>
 
-      {/* SIMULATOR TABS */}
+      {/* Simulator Tabs */}
       <div className="mt-6 bg-white border-2 border-gray-100 rounded-2xl p-4 lg:p-6">
-        {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab("side-hustle")}
@@ -140,7 +136,7 @@ function SimulationsPage() {
           </button>
         </div>
 
-        {/* Side Hustle Simulator */}
+        {/* ── Side Hustle Form ────────────────────────────────────── */}
         {activeTab === "side-hustle" && (
           <form onSubmit={handleSideHustleSubmit}>
             <div className="flex gap-3 items-start mb-4">
@@ -151,13 +147,12 @@ function SimulationsPage() {
                 <h1 className="text-gray-800 font-bold text-lg md:text-xl">
                   Side Hustle Simulator
                 </h1>
-                <p className="text-gray-500 text-sm md:text-md">
+                <p className="text-gray-500 text-sm">
                   Test your business idea with Bayesian projections
                 </p>
               </div>
             </div>
 
-            {/* Investment Amount */}
             <div className="mb-4">
               <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
                 Investment Amount (₦)
@@ -165,43 +160,43 @@ function SimulationsPage() {
               <input
                 type="number"
                 value={sideHustleForm.investment_amount || ""}
-                onChange={(e) => setSideHustleForm(prev => ({
-                  ...prev,
-                  investment_amount: Number(e.target.value)
-                }))}
+                onChange={(e) =>
+                  setSideHustleForm((p) => ({
+                    ...p,
+                    investment_amount: Number(e.target.value),
+                  }))
+                }
                 placeholder="Enter amount to invest"
-                className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
-                min="0"
+                className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
+                min="1"
                 max={freeCash}
                 required
               />
-              <p className="text-gray-500 text-xs md:text-sm mt-1">
+              <p className="text-gray-500 text-xs mt-1">
                 Available free cash: ₦{freeCash.toLocaleString()}
               </p>
             </div>
 
-            {/* Business Type */}
             <div className="mb-4">
               <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
                 Business Type
               </label>
               <select
                 value={sideHustleForm.hustle_type}
-                onChange={(e) => setSideHustleForm(prev => ({
-                  ...prev,
-                  hustle_type: e.target.value
-                }))}
-                className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
+                onChange={(e) =>
+                  setSideHustleForm((p) => ({ ...p, hustle_type: e.target.value }))
+                }
+                className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
               >
                 <option value="catering">Catering</option>
                 <option value="reselling">Reselling</option>
                 <option value="freelancing">Freelancing</option>
                 <option value="content_creation">Content Creation</option>
+                <option value="tutoring">Tutoring</option>
                 <option value="other">Other</option>
               </select>
             </div>
 
-            {/* Revenue Range */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
@@ -210,13 +205,15 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={sideHustleForm.expected_revenue_min || ""}
-                  onChange={(e) => setSideHustleForm(prev => ({
-                    ...prev,
-                    expected_revenue_min: Number(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setSideHustleForm((p) => ({
+                      ...p,
+                      expected_revenue_min: Number(e.target.value),
+                    }))
+                  }
                   placeholder="Minimum expected"
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
-                  min="0"
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
+                  min="1"
                   required
                 />
               </div>
@@ -227,19 +224,20 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={sideHustleForm.expected_revenue_max || ""}
-                  onChange={(e) => setSideHustleForm(prev => ({
-                    ...prev,
-                    expected_revenue_max: Number(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setSideHustleForm((p) => ({
+                      ...p,
+                      expected_revenue_max: Number(e.target.value),
+                    }))
+                  }
                   placeholder="Maximum expected"
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
-                  min="0"
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
+                  min="1"
                   required
                 />
               </div>
             </div>
 
-            {/* Time Horizon & Fixed Costs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
@@ -248,11 +246,13 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={sideHustleForm.time_horizon_weeks}
-                  onChange={(e) => setSideHustleForm(prev => ({
-                    ...prev,
-                    time_horizon_weeks: Number(e.target.value)
-                  }))}
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
+                  onChange={(e) =>
+                    setSideHustleForm((p) => ({
+                      ...p,
+                      time_horizon_weeks: Number(e.target.value),
+                    }))
+                  }
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
                   min="1"
                   max="52"
                   required
@@ -265,18 +265,19 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={sideHustleForm.fixed_costs || ""}
-                  onChange={(e) => setSideHustleForm(prev => ({
-                    ...prev,
-                    fixed_costs: Number(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setSideHustleForm((p) => ({
+                      ...p,
+                      fixed_costs: Number(e.target.value),
+                    }))
+                  }
                   placeholder="Optional"
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2 focus:transition-all focus:duration-300"
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-emerald-500 focus:border-2"
                   min="0"
                 />
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={sideHustleSim.loading}
@@ -288,7 +289,7 @@ function SimulationsPage() {
           </form>
         )}
 
-        {/* Savings Simulator */}
+        {/* ── Savings Form ───────────────────────────────────────── */}
         {activeTab === "savings" && (
           <form onSubmit={handleSavingsSubmit}>
             <div className="flex gap-3 items-start mb-4">
@@ -299,13 +300,12 @@ function SimulationsPage() {
                 <h1 className="text-gray-800 font-bold text-lg md:text-xl">
                   Savings Simulator
                 </h1>
-                <p className="text-gray-500 text-sm md:text-md">
+                <p className="text-gray-500 text-sm">
                   Project your savings trajectory against upcoming obligations
                 </p>
               </div>
             </div>
 
-            {/* Weekly Savings & Target */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
@@ -314,13 +314,15 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={savingsForm.weekly_savings_amount || ""}
-                  onChange={(e) => setSavingsForm(prev => ({
-                    ...prev,
-                    weekly_savings_amount: Number(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setSavingsForm((p) => ({
+                      ...p,
+                      weekly_savings_amount: Number(e.target.value),
+                    }))
+                  }
                   placeholder="How much per week?"
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-blue-500 focus:border-2 focus:transition-all focus:duration-300"
-                  min="0"
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-blue-500 focus:border-2"
+                  min="1"
                   required
                 />
               </div>
@@ -331,32 +333,32 @@ function SimulationsPage() {
                 <input
                   type="number"
                   value={savingsForm.target_amount || ""}
-                  onChange={(e) => setSavingsForm(prev => ({
-                    ...prev,
-                    target_amount: Number(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setSavingsForm((p) => ({
+                      ...p,
+                      target_amount: Number(e.target.value),
+                    }))
+                  }
                   placeholder="Savings goal"
-                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-blue-500 focus:border-2 focus:transition-all focus:duration-300"
-                  min="0"
+                  className="bg-gray-100 w-full h-12 px-4 outline-none rounded-2xl focus:border-blue-500 focus:border-2"
+                  min="1"
                   required
                 />
               </div>
             </div>
 
-            {/* Upcoming Obligations - Simplified for now */}
             <div className="mb-6">
               <label className="block text-gray-800 font-bold text-sm md:text-base mb-2">
                 Upcoming Obligations
               </label>
               <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-4">
                 <p className="text-gray-500 text-sm">
-                  Upcoming fee obligations will be automatically loaded from your profile.
-                  The simulation will show risk levels (green/amber/red) based on your savings rate vs. upcoming payments.
+                  Fee obligations are loaded from your profile automatically.
+                  The simulation shows risk levels (green / amber / red) per week.
                 </p>
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={savingsSim.loading}
@@ -369,16 +371,15 @@ function SimulationsPage() {
         )}
       </div>
 
-      {/* SIMULATION RESULTS */}
-      {sideHustleSim.data && sideHustleSim.data.success && (
+      {/* Results */}
+      {sideHustleSim.data?.success && (
         <SimulationResults result={sideHustleSim.data} />
       )}
-
-      {savingsSim.data && savingsSim.data.success && (
+      {savingsSim.data?.success && (
         <SimulationResults result={savingsSim.data} />
       )}
 
-      {/* ERROR DISPLAY */}
+      {/* Errors */}
       {(sideHustleSim.error || savingsSim.error) && (
         <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-2xl p-4">
           <div className="flex items-center gap-2">
@@ -391,25 +392,23 @@ function SimulationsPage() {
         </div>
       )}
 
-      {/* INFO */}
+      {/* How it works */}
       <div className="border-2 border-gray-100 w-full mt-6 bg-white rounded-2xl p-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-gray-500" />
-          <h2 className="text-sm md:text-md font-bold text-gray-800">
+          <h2 className="text-sm font-bold text-gray-800">
             How Portfolio Simulation Works
           </h2>
         </div>
-
         <p className="text-gray-500 mt-2 text-xs md:text-sm leading-relaxed">
-          ZELTA runs Bayesian Monte Carlo projections (1,000 simulations) using
-          your input variables. Kelly Criterion then sizes the safe allocation based on
-          current Bayse crowd signals and your stress index. The simulation adjusts
-          in real-time when Bayse market prices shift, giving you probabilistic
-          decision support before committing real capital.
+          ZELTA runs Bayesian Monte Carlo projections (1,000 simulations) using your input
+          variables. Kelly Criterion sizes the safe allocation based on current Bayse crowd
+          signals and your stress index. The simulation adjusts in real-time when Bayse
+          market prices shift, giving you probabilistic decision support before committing
+          real capital.
         </p>
       </div>
 
-      {/* FLOATING BUTTON — opens co-pilot */}
       <button
         onClick={() => router.push("/dashboard/co-pilot")}
         className="fixed bottom-6 right-6 bg-emerald-500 rounded-full w-14 h-14 z-50 flex items-center justify-center shadow-lg hover:bg-emerald-400 transition-all"

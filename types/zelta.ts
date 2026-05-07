@@ -1,26 +1,32 @@
-// ─── /api/brain ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+//  ZELTA TYPE DEFINITIONS — ground-truth from zelta_backend schemas
+//  Last synced: 2026-05 against zelta_backend/schemas/*.py
+// ─────────────────────────────────────────────────────────────────
 
-export type Verdict = "SAVE" | "INVEST" | "HOLD";
-export type StressLevel = "CALM" | "MODERATE" | "CRISIS";
+// ─── Shared enums ─────────────────────────────────────────────────
+export type Verdict       = "SAVE" | "INVEST" | "HOLD";
+/** Backend common.py StressLevel enum */
+export type StressLevel   = "CALM" | "MODERATE" | "HIGH_STRESS" | "CRISIS";
 export type ConfidenceTier = "Low" | "Medium" | "High";
-export type ScoreLabel = "WEAK" | "MODERATE" | "STRONG";
-export type ScoreRating = "Poor" | "Fair" | "Good" | "Excellent";
-export type BiasType =
-  | "Rational"
-  | "Loss Aversion"
-  | "Overconfidence"
-  | "Anchoring";
-export type Urgency = "LOW" | "MODERATE" | "HIGH";
+export type ScoreLabel    = "WEAK" | "MODERATE" | "STRONG";
+export type ScoreRating   = "Poor" | "Fair" | "Good" | "Excellent";
+export type Urgency       = "LOW" | "MODERATE" | "HIGH";
+export type BiasType      =
+  | "Rational" | "Loss Aversion" | "Overconfidence"
+  | "Anchoring" | "LOSS_AVERSION" | "PRESENT_BIAS"
+  | "OVERCONFIDENCE" | "HERD_BEHAVIOR" | "MENTAL_ACCOUNTING" | "NONE";
 
+// ─── /api/brain (IntelligenceResponse.data = BrainResponse) ──────
+// Matches intelligence.py BrainResponse schema exactly
 export interface BrainData {
   bayse: {
-    score: number;
+    score: number;                  // 0-100
     status: StressLevel;
     market_title: string;
     market_id: string;
-    crowd_yes_price: number;
-    crowd_no_price: number;
-    mid_price: number;
+    crowd_yes_price: number;        // 0-1 decimal
+    crowd_no_price: number;         // 0-1 decimal
+    mid_price: number;              // 0-1 decimal
     best_bid: number;
     best_ask: number;
     spread: number;
@@ -28,7 +34,7 @@ export interface BrainData {
     volume24h: number;
     trade_count_24h: number;
     available: boolean;
-    raw_crowd_stress: number;
+    raw_crowd_stress: number;       // 0-100 (BayseSchema field)
     naira_weakness_probability: number;
     outcome: string | null;
     last_price: number;
@@ -37,33 +43,28 @@ export interface BrainData {
   };
   nlp: {
     scored_headlines: {
-      source: string;
-      title: string;
-      url: string;
-      timestamp: string;
-      sentiment: number;
-      confidence: number;
+      source: string; title: string; url: string; timestamp: string;
+      sentiment: number; confidence: number;
       sentiment_label: "positive" | "negative" | "neutral";
-      is_campus_relevant: boolean;
-      weight: number;
+      is_campus_relevant: boolean; weight: number;
     }[];
     aggregate_sentiment: number;
   };
   stress: {
-    combined_index: number;
+    combined_index: number;         // 0-100
     level: StressLevel;
     label: string;
-    bayse_primary: number;
-    nlp_secondary: number;
-    market_probability: number;
+    bayse_primary: number;          // 0-1 decimal
+    nlp_secondary: number;          // 0-1 decimal
+    market_probability: number;     // 0-1 decimal
     bayse_weight: number;
     nlp_weight: number;
     plain_english: string;
-    score: number;
-    stress_score: number;
+    score: number;                  // computed alias for combined_index
+    stress_score: number;           // computed alias for combined_index
   };
   bias: {
-    active_bias: BiasType;
+    active_bias: string;
     confidence: ConfidenceTier;
     explanation: string;
     inputs: Record<string, unknown>;
@@ -71,31 +72,27 @@ export interface BrainData {
   };
   decision: {
     verdict: Verdict;
-    market_probability: number;
-    rational_probability: number;
+    market_probability: number;     // 0-1 decimal
+    rational_probability: number;   // 0-1 decimal
     edge: number;
     confidence: ConfidenceTier;
-    win_probability: number;
+    win_probability: number;        // 0-1 decimal
     bias_applied: string;
     plain_english: string;
   };
   confidence: {
-    rational_pct: number;
-    behavioral_pct: number;
-    gap: number;
-    confidence_score: number;
+    rational_pct: number;           // 0-100 float
+    behavioral_pct: number;         // 0-100 float
+    gap: number;                    // 0-100 float (confidence gap)
+    confidence_score: number;       // 0-100
     confidence_tier: ConfidenceTier;
     score_label: ScoreLabel;
     intervention_urgency: Urgency;
     is_actionable: boolean;
     plain_english: string;
-    metrics: {
-      edge_contribution: number;
-      stress_penalty: number;
-      conviction_contribution: number;
-    };
-    confidence_score_100: number;
-    confidence_label: string;
+    metrics: { edge_contribution: number; stress_penalty: number; conviction_contribution: number; };
+    confidence_score_100: number;   // computed alias
+    confidence_label: string;       // computed alias
   };
   allocation: {
     verdict: Verdict;
@@ -105,72 +102,76 @@ export interface BrainData {
     allocation_pct: number;
     allocator_notes: string;
     plain_english: string;
-    invest_amount: number;
-    save_amount: number;
-    hold_amount: number;
+    invest_amount: number;          // computed alias
+    save_amount: number;            // computed alias
+    hold_amount: number;            // computed alias
   };
   score: {
     score: number;
     decision_score: number;
     rating: ScoreRating;
-    components: {
-      edge_score: number;
-      confidence_score: number;
-      verdict_score: number;
-    };
+    components: { edge_score: number; confidence_score: number; verdict_score: number; };
   };
   explanation: {
     summary: string;
     reasoning: string;
     action: string;
-    what_this_means_for_you: string;
-    bias_explanation: string;
-    confidence_note: string;
+    what_this_means_for_you: string | null;
+    bias_explanation: string | null;
+    confidence_note: string | null;
     bq_alert: string | null;
-    context_summary: string;
+    context_summary: string | null;
   };
 }
 
-// ─── /api/intelligence ───────────────────────────────────────────
-
+// ─── /api/intelligence (flat projection from intelligence.py route) ───
+// The route manually projects BrainResponse fields into this flat dict
 export interface IntelligenceData {
-  stress_index: number;
+  // Stress (from brain.stress)
+  stress_index: number;             // combined_index — 0-100
   stress_level: StressLevel;
   stress_label: string;
-  bayse_primary: number;
-  nlp_secondary: number;
-  market_probability?: number;
-  bayse_score: number;
+  bayse_primary: number;            // 0-1 decimal
+  nlp_secondary: number;            // 0-1 decimal
+  market_probability: number;       // 0-1 decimal
+  // Bayse market
+  bayse_score: number;              // 0-100
   bayse_status: StressLevel;
-  bayse_market: string;
-  crowd_yes?: number;
-  crowd_no: number;
-  mid_price: number;
+  bayse_market: string;             // market_title
+  crowd_yes: number;                // crowd_yes_price — 0-1 decimal
+  crowd_no: number;                 // 0-1 decimal
+  mid_price: number;                // 0-1 decimal
   spread: number;
+  // Bias
   active_bias: string;
-  bias_confidence: string;
+  bias_confidence: string;          // bias.confidence
   bias_explanation: string;
-  decision_verdict: Verdict;
+  // Decision
+  decision_verdict: Verdict;        // decision.verdict
   edge: number;
-  win_probability: number;
+  win_probability: number;          // 0-1 decimal
   decision_plain: string;
+  // Confidence — all 0-100 floats
   rational_pct: number;
   behavioral_pct: number;
-  confidence_gap: number;
+  confidence_gap: number;           // confidence.gap
   confidence_score: number;
   confidence_tier: ConfidenceTier;
   score_label: ScoreLabel;
   is_actionable: boolean;
   intervention_urgency: Urgency;
   confidence_plain: string;
-  verdict: Verdict;
-  invest_ngn?: number;
+  // Allocation
+  verdict: Verdict;                 // allocation.verdict (primary verdict for UI)
+  invest_ngn: number;
   save_ngn: number;
   hold_ngn: number;
   allocation_pct: number;
-  allocation_plain: string;
+  allocation_plain: string;         // allocation.plain_english
+  // Score
   decision_score: number;
   score_rating: ScoreRating;
+  // Explanation
   summary: string;
   bq_alert: string | null;
   action: string;
@@ -178,119 +179,88 @@ export interface IntelligenceData {
   headlines: unknown[];
 }
 
-// ─── /api/stress ─────────────────────────────────────────────────
-
+// ─── /api/stress (StressOnlyResponse schema) ─────────────────────
+// Matches intelligence.py StressOnlyResponse exactly
 export interface StressData {
-  combined_index: number;
+  stress_index: number;             // combined_index — 0-100
   level: StressLevel;
   label: string;
-  bayse_primary: number;
-  nlp_secondary: number;
-  market_probability: number;
-  bayse_weight: number;
-  nlp_weight: number;
-  plain_english: string;
-  score: number;
-  stress_score: number;
+  bayse_primary: number;            // 0-1 decimal
+  nlp_secondary: number;            // 0-1 decimal
+  market_probability: number;       // 0-1 decimal
 }
 
 // ─── /api/bayse/markets ──────────────────────────────────────────
-
 export interface BayseMarket {
   name: string;
   probability: number;
   description: string;
 }
-
 export interface MarketsData {
   markets: BayseMarket[];
   composite_stress: number;
   bayse_available: boolean;
   market_title: string;
-  verdict: StressLevel;
+  verdict: string;
 }
 
 // ─── /api/bayse/stress ───────────────────────────────────────────
-
+// Matches the actual route response from intelligence.py bayse_stress()
 export interface BayseStressData {
-  score: number;
-  status: StressLevel;
+  crowd_stress: number;             // ← CORRECT field name from backend route
+  bayse_score: number;
+  bayse_status: StressLevel;
   market_title: string;
-  market_id: string;
-  crowd_yes_price: number;
-  crowd_no_price: number;
   mid_price: number;
-  best_bid: number;
-  best_ask: number;
   spread: number;
-  imbalance: number;
-  volume24h: number;
-  trade_count_24h: number;
   available: boolean;
-  raw_crowd_stress: number;
-  naira_weakness_probability: number;
-  outcome?: string | null;
-  last_price: number;
-  source: string;
-  updated_at?: number | null;
 }
 
 // ─── /api/bayse/sentiment ────────────────────────────────────────
-
 export interface BayseSentimentData {
   panic_score: number;
-  interpretation: StressLevel;
+  interpretation: string;
   crowd_yes_price: number;
   imbalance: number;
   volume24h: number;
 }
 
 // ─── combined bayse signals ──────────────────────────────────────
-
 export interface BayseSignalsData {
   stress: BayseStressData;
   sentiment: BayseSentimentData;
 }
 
-// ─── /api/behavioral/snapshot ───────────────────────────────────
-
-export interface InstinctSay {
-  action: string;
-  amount: number;
-}
-
-export interface MathSay {
-  action: string;
-  amount: number;
-}
-
+// ─── /api/behavioral/snapshot ────────────────────────────────────
+// Returned DIRECTLY (no {success, data} wrapper) — matches behavioral.py
 export interface BehavioralEvidence {
   transaction: string;
   date: string;
   trigger: string;
-  bayse_fear_at_time: number;
-  zelta_model_at_time: number;
+  bayse_fear_at_time: number;       // 0-1 decimal
+  zelta_model_at_time: number;      // 0-1 decimal
   gap: number;
   plain_english: string;
 }
-
 export interface BehavioralBiasCard {
   bias: string;
   status: string;
   current_strength: number;
   explanation: string;
 }
+export interface InstinctSay { action: string; amount: number; }
+export interface MathSay { action: string; amount: number; }
 
 export interface BehavioralSnapshot {
   active_bias: string;
   confidence: string;
   explanation: string;
-  bayse_crowd_fear: number;
-  bayse_zelta_model: number;
+  bayse_crowd_fear: number;         // 0-1 decimal from backend
+  bayse_zelta_model: number;        // 0-1 decimal from backend
   bayse_gap: number;
   bayse_market_title?: string;
-  rational_pct: number;
-  behavioral_pct: number;
+  rational_pct: number;             // 0-100
+  behavioral_pct: number;           // 0-100
   decision_gap: number;
   confidence_score?: number;
   confidence_tier?: string;
@@ -307,8 +277,7 @@ export interface BehavioralSnapshot {
   recommendation?: string;
 }
 
-// ─── /api/behavioral/pattern ────────────────────────────────────
-
+// ─── /api/behavioral/pattern ─────────────────────────────────────
 export interface BehavioralWeekItem {
   week: string;
   bias: string;
@@ -316,7 +285,6 @@ export interface BehavioralWeekItem {
   note?: string;
   confidence_label?: string;
 }
-
 export interface BehavioralPattern {
   weeks?: BehavioralWeekItem[];
   dominant_bias?: string;
@@ -325,23 +293,18 @@ export interface BehavioralPattern {
   confidence_gap?: number;
 }
 
+// ─── /api/copilot ────────────────────────────────────────────────
 export interface CopilotMessage {
   role: "system" | "user" | "assistant" | string;
   content: string;
   timestamp?: string | null;
 }
-
-export interface ContextPill {
-  label: string;
-  value: string;
-}
-
+export interface ContextPill { label: string; value: string; }
 export interface CopilotRequest {
   question: string;
   context?: Record<string, unknown> | null;
   conversation_history?: CopilotMessage[];
 }
-
 export interface CopilotResponse {
   answer: string;
   verdict?: string;
@@ -350,96 +313,119 @@ export interface CopilotResponse {
   confidence?: number;
   sources?: string[];
 }
-
-// Wrapping envelope returned by POST /api/copilot
-// apiFetch unwraps this → gives CopilotResponse directly
 export interface CopilotAPIResponse {
   success: boolean;
   data: CopilotResponse;
 }
 
 // ─── /api/simulation/* ───────────────────────────────────────────
+// Exact field names from simulation_service.py SideHustleSimResult + SavingsSimResult
 
 export type SimulationType = "side_hustle" | "savings";
 
 export interface SideHustleSimRequest {
-  investment_amount: number;
+  investment_amount: number;        // gt=0 required
   hustle_type: string;
-  expected_revenue_min: number;
-  expected_revenue_max: number;
-  time_horizon_weeks: number;
-  fixed_costs?: number;
+  expected_revenue_min: number;     // gt=0 required
+  expected_revenue_max: number;     // gt=0 required
+  time_horizon_weeks: number;       // ge=1, le=52
+  fixed_costs?: number;             // default 0
 }
 
 export interface SavingsSimRequest {
-  weekly_savings_amount: number;
-  target_amount: number;
+  weekly_savings_amount: number;    // gt=0 required
+  target_amount: number;            // gt=0 required
   upcoming_obligations: Array<{
     amount: number;
-    due_date: string;
+    due_date: string;               // ISO datetime string
     description?: string;
   }>;
+}
+
+/** MonteCarloResult from simulation_service */
+export interface MonteCarloResult {
+  p10: number;
+  p50: number;
+  p90: number;
+  mean: number;
+  std_dev: number;
+  success_probability: number;      // 0-100 percentage
+}
+
+/** SideHustleSimResult from simulation_service */
+export interface SideHustleSimResult {
+  recommended_investment: number;
+  kelly_adjusted_amount: number;    // ← correct field (not kelly_allocation)
+  decision_score: number;           // sharpe_score — 0-5
+  expected_return_min: number;
+  expected_return_max: number;
+  expected_return_mean: number;     // ← correct field (not expected_return)
+  roi_percentage: number;
+  monte_carlo: MonteCarloResult;    // ← correct field (not probability_bands)
+  stress_adjusted: boolean;
+  verdict: string;
+  plain_english: string;
+  sharpe_score: number;
+}
+
+/** WeekOutcome from simulation_service */
+export interface WeekOutcome {
+  week: number;
+  projected_balance: number;        // ← correct field (not saved_amount)
+  status: "green" | "amber" | "red";
+  risk_level: number;
+}
+
+/** SavingsSimResult from simulation_service */
+export interface SavingsSimResult {
+  weeks_to_target: number;
+  weekly_surplus: number;
+  obligation_risk_map: WeekOutcome[]; // ← correct field (not weekly_trajectory)
+  projected_shortfall: number;
+  savings_score: number;            // 0-5
+  green_weeks: number;
+  amber_weeks: number;
+  red_weeks: number;
+  verdict: string;                  // ON_TRACK | REVIEW | SAVE_MORE
+  plain_english: string;
 }
 
 export interface SimulationResponse {
   success: boolean;
   simulation_type: SimulationType;
-  data: {
-    [key: string]: unknown;     // backend may return extra fields
-    recommendation?: string;
-    confidence_score?: number;
-    risk_level?: string;
-    // Side hustle specific
-    kelly_allocation?: number;
-    expected_return?: number;
-    probability_bands?: {
-      low: number;
-      medium: number;
-      high: number;
-    };
-    decision_score?: number;
-    kelly_fraction?: number;
-    plain_english?: string;
-    // Savings specific
-    weeks_to_target?: number;
-    weekly_trajectory?: Array<{
-      week: number;
-      saved_amount: number;
-      risk_status: "green" | "amber" | "red";
-      notes?: string;
-    }>;
-  };
+  data: SideHustleSimResult | SavingsSimResult | Record<string, unknown>;
 }
 
 // ─── /api/wallet ─────────────────────────────────────────────────
+export type TransactionCategory =
+  | "food" | "transport" | "data" | "education" | "side_hustle"
+  | "parent_transfer" | "bursary" | "savings" | "investment"
+  | "entertainment" | "utilities" | "other";
 
 export interface SavingsGoal {
   id: string;
   label: string;
   amount: number;
-  unlock_date: string;
+  unlock_date: string;              // ISO datetime
   description?: string | null;
   created_at: string;
   is_active: boolean;
 }
-
 export interface Transaction {
   id: string;
   type: "income" | "expense" | "lock" | "unlock";
   amount: number;
-  category: string;
+  category: TransactionCategory;
   description?: string | null;
   date: string;
   balance_after: number;
 }
-
 export interface SpendingHeatItem {
-  category: string;
+  category: TransactionCategory;
   amount: number;
   percentage: number;
   status: "green" | "amber" | "red";
 }
-
 export interface WalletSummary {
   total_balance: number;
   free_cash: number;
@@ -451,19 +437,14 @@ export interface WalletSummary {
   recent_transactions: Transaction[];
   spending_heat: SpendingHeatItem[];
   bq_alerts: string[];
-  locked_total?: number;
+  locked_total?: number;            // computed alias for locked_amount
 }
-
-export interface WalletResponse {
-  success: boolean;
-  data: WalletSummary;
-}
+export interface WalletResponse { success: boolean; data: WalletSummary; }
 
 // ─── /api/profile ────────────────────────────────────────────────
-
 export interface FinancialProfile {
   monthly_budget?: number | null;
-  fee_obligations: Array<Record<string, any>>;
+  fee_obligations: Array<Record<string, unknown>>;
   income_sources: string[];
   side_hustle_type?: string | null;
   hostel_fee?: number | null;
@@ -473,7 +454,6 @@ export interface FinancialProfile {
   capital_range?: string | null;
   monthly_income?: number | null;
 }
-
 export interface PreferencesProfile {
   currency: string;
   language: string;
@@ -485,7 +465,6 @@ export interface PreferencesProfile {
   decision_aggressiveness?: number | null;
   stress_sensitivity?: number | null;
 }
-
 export interface NotificationsProfile {
   stress_alerts: boolean;
   weekly_bq_report: boolean;
@@ -493,7 +472,6 @@ export interface NotificationsProfile {
   bayse_spike_alerts: boolean;
   frequency: "daily" | "weekly" | "real_time" | "off";
 }
-
 export interface UserProfile {
   uid: string;
   email: string;
@@ -506,12 +484,7 @@ export interface UserProfile {
   preferences: PreferencesProfile;
   notifications: NotificationsProfile;
 }
-
-export interface ProfileResponse {
-  success: boolean;
-  data: UserProfile;
-}
-
+export interface ProfileResponse { success: boolean; data: UserProfile; }
 export interface UpdateProfileRequest {
   name?: string | null;
   university?: string | null;
@@ -523,7 +496,6 @@ export interface UpdateProfileRequest {
 }
 
 // ─── /api/portfolio ──────────────────────────────────────────────
-
 export interface PerformanceMetrics {
   total_decisions: number;
   correct_decisions: number;
@@ -537,7 +509,6 @@ export interface PerformanceMetrics {
   best_decision_score: number;
   average_bayse_accuracy_gap: number;
 }
-
 export interface DecisionRecord {
   id: string;
   verdict: Verdict;
@@ -556,18 +527,14 @@ export interface DecisionRecord {
   created_at: string;
   resolved_at?: string | null;
 }
-
 export interface PortfolioSummary {
   metrics: PerformanceMetrics;
   recent_decisions: DecisionRecord[];
   behavioral_pattern_summary: string;
 }
+export interface PortfolioResponse { success: boolean; data: PortfolioSummary; }
 
-export interface PortfolioResponse {
-  success: boolean;
-  data: PortfolioSummary;
-}
-
+// LogDecisionRequest matches portfolio.py LogDecisionRequest exactly
 export interface LogDecisionRequest {
   verdict: Verdict;
   amount: number;
@@ -579,7 +546,7 @@ export interface LogDecisionRequest {
   category: string;
   notes?: string | null;
 }
-
+// UpdateOutcomeRequest matches portfolio.py UpdateOutcomeRequest exactly
 export interface UpdateOutcomeRequest {
   decision_id: string;
   actual_outcome: number;

@@ -192,7 +192,7 @@ function LockGoalModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
     if (!unlockDate) { setError("Please select an unlock date."); return; }
     setLoading(true); setError(null);
     try {
-      await apiFetch("/api/wallet/goal", {
+      await apiFetch("/api/wallet/lock", {
         method: "POST",
         // Backend expects ISO datetime string for unlock_date
         body: JSON.stringify({ label: label.trim(), amount: Number(amount), unlock_date: new Date(unlockDate).toISOString(), description: description || undefined }),

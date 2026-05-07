@@ -13,8 +13,10 @@ export default function Bayse() {
 
   if (loading) return <LoadingState text="Loading Bayse snapshot..." />;
 
-  const crowdFear = Number(data.bayse_crowd_fear ?? 0);
-  const zeltaModel = Number(data.bayse_zelta_model ?? 0);
+  // bayse_crowd_fear and bayse_zelta_model are 0-1 decimals from backend
+  // Convert to 0-100 for display
+  const crowdFear = Number(data.bayse_crowd_fear ?? 0) * 100;
+  const zeltaModel = Number(data.bayse_zelta_model ?? 0) * 100;
   const gapRaw = Number(data.bayse_gap ?? 0);
   const gap = Math.abs(gapRaw) * 100;
 
@@ -40,14 +42,14 @@ export default function Bayse() {
           <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-10">
             <div>
               <p className="text-sm font-light text-gray-500">Bayse Crowd Fear</p>
-              <p className="text-3xl font-bold text-orange-400">{crowdFear.toFixed(2)}%</p>
+              <p className="text-3xl font-bold text-orange-400">{crowdFear.toFixed(1)}%</p>
             </div>
 
             <div>
               <p className="text-sm font-light text-gray-500">
                 ZELTA Relational Model
               </p>
-              <p className="text-3xl font-bold text-green-500">{zeltaModel.toFixed(2)}%</p>
+              <p className="text-3xl font-bold text-green-500">{zeltaModel.toFixed(1)}%</p>
             </div>
           </div>
 

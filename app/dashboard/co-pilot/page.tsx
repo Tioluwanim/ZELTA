@@ -172,23 +172,23 @@ export default function CopilotPage() {
       },
       {
         title: "Stress Index",
-        // combined_index is already 0-100; guard against NaN with isFinite
-        value: stress.data && Number.isFinite(stress.data.combined_index)
-          ? `${Math.round(stress.data.combined_index)}/100`
+        // stress_index is 0-100; guard against NaN
+        value: stress.data && Number.isFinite(stress.data.stress_index)
+          ? `${Math.round(stress.data.stress_index)}/100`
           : "—",
-        color: stress.data && Number.isFinite(stress.data.combined_index)
-          ? stress.data.combined_index > 60
+        color: stress.data && Number.isFinite(stress.data.stress_index)
+          ? stress.data.stress_index > 60
             ? "text-red-500"
-            : stress.data.combined_index > 30
+            : stress.data.stress_index > 30
             ? "text-yellow-500"
             : "text-emerald-500"
           : "text-gray-500",
       },
       {
         title: "Bayse Fear",
-        // raw_crowd_stress is already 0-100 — do NOT multiply by 100
-        value: bayse.data?.stress && Number.isFinite(bayse.data.stress.raw_crowd_stress)
-          ? `${Math.round(bayse.data.stress.raw_crowd_stress)}%`
+        // crowd_stress is 0-100 from /api/bayse/stress — do NOT multiply by 100
+        value: bayse.data?.stress && Number.isFinite(bayse.data.stress.crowd_stress)
+          ? `${Math.round(bayse.data.stress.crowd_stress)}%`
           : "—",
         color: "text-orange-400",
       },
@@ -215,8 +215,8 @@ export default function CopilotPage() {
       conversation_history: nextMessages,
       context: {
         free_cash: wallet.data?.free_cash ?? 0,
-        stress_index: stress.data?.combined_index ?? 0,
-        bayse_fear: bayse.data?.stress?.raw_crowd_stress ?? 0,
+        stress_index: stress.data?.stress_index ?? 0,
+        bayse_fear: bayse.data?.stress?.crowd_stress ?? 0,
       },
     });
 
