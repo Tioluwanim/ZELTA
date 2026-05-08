@@ -12,7 +12,7 @@ function StatusBadge({ status }: { status: string }) {
     return (
       <span className="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
         <CheckCircle className="h-3.5 w-3.5" />
-        CORRECT
+        Your decision worked well
       </span>
     );
   }
@@ -20,14 +20,14 @@ function StatusBadge({ status }: { status: string }) {
     return (
       <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
         <XCircle className="h-3.5 w-3.5" />
-        INCORRECT
+        This decision underperformed
       </span>
     );
   }
   return (
     <span className="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-600">
       <Clock className="h-3.5 w-3.5" />
-      TRACKING
+      Still monitoring results
     </span>
   );
 }

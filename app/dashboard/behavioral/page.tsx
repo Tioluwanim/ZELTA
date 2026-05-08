@@ -12,7 +12,7 @@ export default function Page() {
     <BehavioralDataProvider>
       <div>
         <PageHeader
-          title="Behavioral Snapshot"
+          title="Behavoiral"
           description="Simple coaching to help you make calmer money decisions"
         />
 

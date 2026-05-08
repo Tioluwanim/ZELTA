@@ -259,7 +259,7 @@ function ProfileContent() {
           <div className="divide-y divide-gray-100">
             {([
               { key: "decisionAlerts" as const,  label: "Decision Alerts",       desc: "Get notified when ZELTA recommends an action" },
-              { key: "stressIndex" as const,      label: "Stress Index Updates",  desc: "Daily summary of your stress levels" },
+              { key: "stressIndex" as const,      label: "Market Panic Level Updates",  desc: "Daily summary of market-emotion levels" },
               { key: "bayse" as const,            label: "Bayse Market Signals",  desc: "Important market intelligence updates" },
               { key: "goalProgress" as const,     label: "Goal Progress",         desc: "Weekly updates on your savings goals" },
               { key: "behavioral" as const,       label: "Behavioral Insights",   desc: "Monthly behavioral pattern analysis" },

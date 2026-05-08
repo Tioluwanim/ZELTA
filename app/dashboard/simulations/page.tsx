@@ -69,7 +69,7 @@ function SimulationsPage() {
   return (
     <div className="px-3 lg:px-0">
       <PageHeader
-        title="Portfolio Simulations"
+        title="Simulation"
         description="Try your idea first, then decide with confidence"
       />
 
@@ -438,7 +438,7 @@ function SimulationsPage() {
           <h2 className="text-sm font-bold text-gray-800">What do these numbers mean?</h2>
         </div>
         <p className="text-gray-500 mt-2 text-xs md:text-sm leading-relaxed">
-          We run 1,000 possible outcomes using your inputs. "Kelly Allocation" is a safer
+          We run 1,000 possible outcomes using your inputs. "Safe Allocation" is a safer
           amount to commit right now. "Decision Score" shows quality of the plan. "Outcome
           bands" show worst-case, expected, and best-case ranges so you can plan with less risk.
         </p>

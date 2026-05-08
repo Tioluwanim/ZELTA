@@ -18,8 +18,8 @@ import { useZelta } from "@/context/zeltaContext";
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/wallet": "Wallet",
-  "/dashboard/behavioral": "Behavioral Snapshot",
-  "/dashboard/simulations": "Portfolio Simulations",
+  "/dashboard/behavioral": "Behavoiral",
+  "/dashboard/simulations": "Simulation",
   "/dashboard/co-pilot": "ZELTA Co-pilot",
   "/dashboard/history": "Decision History",
   "/dashboard/profile": "Profile & Settings",

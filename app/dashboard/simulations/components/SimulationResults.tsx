@@ -57,7 +57,7 @@ export default function SimulationResults({ result }: Props) {
               {d.plain_english}
               {isWarn && d.kelly_adjusted_amount === 0 && (
                 <p className="mt-2 text-xs opacity-75">
-                  Kelly Criterion returned 0 because expected edge is insufficient at these
+                  Safe allocation returned 0 because expected edge is insufficient at these
                   revenue inputs. Try increasing expected revenue or reducing fixed costs.
                 </p>
               )}
@@ -68,7 +68,7 @@ export default function SimulationResults({ result }: Props) {
         {/* Key metrics — using EXACT backend field names */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           <MetricCard
-            title="Kelly Allocation"
+            title="Safe Allocation"
             // Backend field: kelly_adjusted_amount (not kelly_allocation)
             value={`₦${fmt(d.kelly_adjusted_amount)}`}
             sub="Safe investment amount"
@@ -111,7 +111,7 @@ export default function SimulationResults({ result }: Props) {
           <div className="mb-5 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
             <p className="text-amber-700 text-sm font-medium">
-              Kelly allocation was reduced due to elevated stress index
+              Safe allocation was reduced due to elevated market panic level
             </p>
           </div>
         )}
