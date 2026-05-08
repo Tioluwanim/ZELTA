@@ -25,6 +25,7 @@ function SimulationsPage() {
     target_amount: 0,
     upcoming_obligations: [],
   });
+  const [inlineError, setInlineError] = useState<string | null>(null);
 
   const { data: walletData, loading: walletLoading } = useWallet();
   const { data: stressData } = useStress();
@@ -44,6 +45,15 @@ function SimulationsPage() {
 
   const handleSideHustleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sideHustleForm.expected_revenue_max < sideHustleForm.expected_revenue_min) {
+      setInlineError("Max expected revenue should be greater than min expected revenue.");
+      return;
+    }
+    if (sideHustleForm.investment_amount > freeCash) {
+      setInlineError("Investment amount cannot be more than your available free cash.");
+      return;
+    }
+    setInlineError(null);
     if (sideHustleForm.investment_amount > 0) {
       await sideHustleSim.runSimulation(sideHustleForm);
     }
@@ -60,7 +70,7 @@ function SimulationsPage() {
     <div className="px-3 lg:px-0">
       <PageHeader
         title="Portfolio Simulations"
-        description="Practice before you commit — Bayesian Monte Carlo projection"
+        description="Try your idea first, then decide with confidence"
       />
 
       {/* Current Financial State */}
@@ -76,7 +86,7 @@ function SimulationsPage() {
               color: "text-gray-800",
             },
             {
-              title: "Stress Index",
+              title: "Market Panic Level",
               value: `${Math.round(stressIndex)}/100`,
               color:
                 stressIndex > 60
@@ -86,13 +96,13 @@ function SimulationsPage() {
                   : "text-emerald-500",
             },
             {
-              title: "Bayse Fear",
+              title: "Market Fear Level (Bayse)",
               // crowd_stress is already 0-100; guard against NaN
               value: bayseData ? `${bayseFear}%` : "—",
               color: "text-orange-400",
             },
             {
-              title: "ZELTA Model",
+              title: "Calm Signal (ZELTA)",
               // Rational side: 100 - crowd_stress
               value: bayseData ? `${zeltaModel}%` : "—",
               color: "text-emerald-500",
@@ -148,8 +158,29 @@ function SimulationsPage() {
                   Side Hustle Simulator
                 </h1>
                 <p className="text-gray-500 text-sm">
-                  Test your business idea with Bayesian projections
+                  Test your business idea before spending real money
                 </p>
+              </div>
+            </div>
+            <div className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs text-emerald-700">
+              <p className="font-semibold">Beginner presets</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[
+                  { label: "Freelancing", data: { hustle_type: "freelancing", investment_amount: 15000, expected_revenue_min: 25000, expected_revenue_max: 50000, time_horizon_weeks: 4, fixed_costs: 3000 } },
+                  { label: "POS business", data: { hustle_type: "other", investment_amount: 80000, expected_revenue_min: 15000, expected_revenue_max: 45000, time_horizon_weeks: 8, fixed_costs: 12000 } },
+                  { label: "Food sales", data: { hustle_type: "catering", investment_amount: 25000, expected_revenue_min: 40000, expected_revenue_max: 80000, time_horizon_weeks: 4, fixed_costs: 7000 } },
+                  { label: "Campus printing", data: { hustle_type: "other", investment_amount: 50000, expected_revenue_min: 30000, expected_revenue_max: 70000, time_horizon_weeks: 6, fixed_costs: 10000 } },
+                  { label: "Thrift business", data: { hustle_type: "reselling", investment_amount: 35000, expected_revenue_min: 55000, expected_revenue_max: 100000, time_horizon_weeks: 6, fixed_costs: 8000 } },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setSideHustleForm((prev) => ({ ...prev, ...preset.data }))}
+                    className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-[11px] font-semibold text-emerald-700"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -174,6 +205,9 @@ function SimulationsPage() {
               />
               <p className="text-gray-500 text-xs mt-1">
                 Available free cash: ₦{freeCash.toLocaleString()}
+              </p>
+              <p className="text-gray-400 text-[11px] mt-1">
+                This is the money you can safely use now.
               </p>
             </div>
 
@@ -281,11 +315,15 @@ function SimulationsPage() {
             <button
               type="submit"
               disabled={sideHustleSim.loading}
+              aria-label="Run side hustle simulation"
               className="w-full cursor-pointer hover:bg-emerald-400 h-12 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-5 h-5" />
-              {sideHustleSim.loading ? "Running Simulation..." : "Run Bayesian Simulation"}
+              {sideHustleSim.loading ? "Running Simulation..." : "Run Side Hustle Simulation"}
             </button>
+            {inlineError && (
+              <p className="mt-2 text-xs text-red-500">{inlineError}</p>
+            )}
           </form>
         )}
 
@@ -301,7 +339,7 @@ function SimulationsPage() {
                   Savings Simulator
                 </h1>
                 <p className="text-gray-500 text-sm">
-                  Project your savings trajectory against upcoming obligations
+                  Check if your weekly saving plan can meet your target
                 </p>
               </div>
             </div>
@@ -362,6 +400,7 @@ function SimulationsPage() {
             <button
               type="submit"
               disabled={savingsSim.loading}
+              aria-label="Run savings simulation"
               className="w-full cursor-pointer hover:bg-blue-400 h-12 bg-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Target className="w-5 h-5" />
@@ -396,23 +435,19 @@ function SimulationsPage() {
       <div className="border-2 border-gray-100 w-full mt-6 bg-white rounded-2xl p-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-gray-500" />
-          <h2 className="text-sm font-bold text-gray-800">
-            How Portfolio Simulation Works
-          </h2>
+          <h2 className="text-sm font-bold text-gray-800">What do these numbers mean?</h2>
         </div>
         <p className="text-gray-500 mt-2 text-xs md:text-sm leading-relaxed">
-          ZELTA runs Bayesian Monte Carlo projections (1,000 simulations) using your input
-          variables. Kelly Criterion sizes the safe allocation based on current Bayse crowd
-          signals and your stress index. The simulation adjusts in real-time when Bayse
-          market prices shift, giving you probabilistic decision support before committing
-          real capital.
+          We run 1,000 possible outcomes using your inputs. "Kelly Allocation" is a safer
+          amount to commit right now. "Decision Score" shows quality of the plan. "Outcome
+          bands" show worst-case, expected, and best-case ranges so you can plan with less risk.
         </p>
       </div>
 
       <button
         onClick={() => router.push("/dashboard/co-pilot")}
-        className="fixed bottom-6 right-6 bg-emerald-500 rounded-full w-14 h-14 z-50 flex items-center justify-center shadow-lg hover:bg-emerald-400 transition-all"
-        title="Open Co-pilot"
+        className="fixed bottom-24 right-5 bg-emerald-500 rounded-full w-12 h-12 z-50 flex items-center justify-center shadow-lg hover:bg-emerald-400 transition-all lg:hidden"
+        title="Confused? Ask ZELTA anything."
       >
         <MessageSquare className="text-white w-5 h-5" />
       </button>

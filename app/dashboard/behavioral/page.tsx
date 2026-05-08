@@ -13,15 +13,22 @@ export default function Page() {
       <div>
         <PageHeader
           title="Behavioral Snapshot"
-          description="Deep dive into your behavioral bias patterns"
+          description="Simple coaching to help you make calmer money decisions"
         />
 
-        <Bayse />
         <Active />
-        <Decision />
-        <Five />
-        <Weeks />
         <Zelta />
+        <Decision />
+        <Bayse />
+        <details className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-gray-700">
+            See detailed bias breakdown
+          </summary>
+          <div className="mt-3 space-y-3">
+            <Five />
+            <Weeks />
+          </div>
+        </details>
       </div>
     </BehavioralDataProvider>
   );

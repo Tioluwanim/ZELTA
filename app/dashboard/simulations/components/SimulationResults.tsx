@@ -39,7 +39,7 @@ export default function SimulationResults({ result }: Props) {
           </div>
           <div>
             <h2 className="text-gray-800 font-bold text-lg">Simulation Results</h2>
-            <p className="text-gray-500 text-sm">Bayesian Monte Carlo projection</p>
+            <p className="text-gray-500 text-sm">Simple outcome ranges from 1,000 projected scenarios</p>
           </div>
         </div>
 
@@ -138,7 +138,7 @@ export default function SimulationResults({ result }: Props) {
               ))}
             </div>
             <div className="mt-2 flex justify-between text-xs text-gray-500 px-1">
-              <span>Success probability: <strong>{fmtDec(d.monte_carlo.success_probability)}%</strong></span>
+              <span>Chance of success: <strong>{fmtDec(d.monte_carlo.success_probability)}%</strong></span>
               <span>Std dev: <strong>₦{fmt(d.monte_carlo.std_dev)}</strong></span>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function SimulationResults({ result }: Props) {
           <div className="mb-5 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-700">
             Sharpe Score: <strong>{fmtDec(d.sharpe_score, 2)}</strong>
             <span className="text-gray-500 ml-2">
-              (Risk-adjusted return quality — higher is better)
+              (How stable your expected return is after risk - higher is better)
             </span>
           </div>
         )}

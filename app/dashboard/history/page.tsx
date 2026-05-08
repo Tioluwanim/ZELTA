@@ -16,7 +16,7 @@ function StatusBadge({ status }: { status: OutcomeStatus }) {
     return (
       <span className="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
         <CheckCircle className="h-3.5 w-3.5" />
-        CORRECT
+        Your decision worked well
       </span>
     );
   }
@@ -25,7 +25,7 @@ function StatusBadge({ status }: { status: OutcomeStatus }) {
     return (
       <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
         <XCircle className="h-3.5 w-3.5" />
-        INCORRECT
+        This decision underperformed
       </span>
     );
   }
@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: OutcomeStatus }) {
   return (
     <span className="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-600">
       <Clock className="h-3.5 w-3.5" />
-      TRACKING
+      Still monitoring results
     </span>
   );
 }
@@ -220,6 +220,13 @@ export default function DecisionHistoryPage() {
 
                       <div className="flex flex-col items-end gap-1.5">
                         <StatusBadge status={status} />
+                        <span className="text-[11px] text-gray-500">
+                          {status === "correct"
+                            ? "Outcome matched your plan."
+                            : status === "incorrect"
+                            ? "Result came in below expectation."
+                            : "Decision is still unfolding."}
+                        </span>
                         {daysTracked !== null && (
                           <span className="text-xs text-gray-400">
                             {daysTracked} days tracked

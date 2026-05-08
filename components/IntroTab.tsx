@@ -16,25 +16,25 @@ const intro: Intro[] = [
   {
     id: "1",
     icon: Brain,
-    heading: "Intelligence from Bayse Markets",
+    heading: "Market Emotion with Bayse",
     details:
-      " We analyze crowd behavior and market signals to give you real-time financial intelligence—no guessing, just data..",
+      "Bayse measures emotional market behavior and crowd panic patterns, so you can decide with more clarity.",
     buttonText: "Next",
   },
   {
     id: "2",
     icon: ArrowBigUp,
-    heading: "Stress Index & Bayesian Reasoning",
+    heading: "Market Panic Level Guidance",
     details:
-      " Know when you're making emotional decisions. Our Stress Index tracks your behavior and corrects it with probabilistic reasoning.",
+      "Know when emotion is high. We show when to slow down, hold cash, or act with caution.",
     buttonText: "Next",
   },
   {
     id: "3",
     icon: Target,
-    heading: "Kelly-Style Decisions ",
+    heading: "Clear Weekly Recommendation",
     details:
-      " Get plain-English verdicts on how much to allocate, when to act, and why—tailored to your goals and risk tolerance..",
+      "Get plain-English guidance on what to do this week, how much to allocate, and why it fits your risk level.",
     buttonText: "Get Started",
   },
 ];

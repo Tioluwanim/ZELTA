@@ -117,6 +117,11 @@ export default function Page() {
             <h3 className="mb-1 text-[14px] font-semibold lg:text-base">
               {section.heading}
             </h3>
+            {section.heading === "Risk Preference" && (
+              <p className="mb-2 text-xs text-gray-500">
+                Conservative: protect money first. Moderate: balanced growth. Aggressive: higher risk for higher upside.
+              </p>
+            )}
 
             <ul className="flex w-full flex-col gap-2.5 text-[14px] font-medium">
               {section.options.map((option) => {
@@ -127,6 +132,8 @@ export default function Page() {
                     key={option}
                     role="button"
                     tabIndex={0}
+                    aria-label={`${section.heading}: ${option}`}
+                    aria-pressed={isActive}
                     onClick={() => handleSelect(section.id, option)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {

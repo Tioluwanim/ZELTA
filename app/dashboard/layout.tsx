@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { ZeltaProvider } from "@/context/zeltaContext";
+import OnboardingOverlay from "@/components/OnboardingOverlay";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -29,6 +30,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile bottom bar — rendered once by Sidebar (lg:hidden inside it) */}
         <Sidebar />
+        <OnboardingOverlay />
 
       </div>
     </ZeltaProvider>

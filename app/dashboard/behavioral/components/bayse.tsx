@@ -36,11 +36,14 @@ export default function Bayse() {
         </div>
 
         <div className="w-full">
-          <h2 className="text-lg font-bold text-gray-800">Bayse vs ZELTA Model</h2>
+          <h2 className="text-lg font-bold text-gray-800">Bayse Emotional Signal vs ZELTA</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Bayse measures emotional market behavior and crowd panic patterns.
+          </p>
 
           <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-10">
             <div>
-              <p className="text-sm font-light text-gray-500">Bayse Crowd Fear</p>
+              <p className="text-sm font-light text-gray-500">Market Fear Level (Bayse)</p>
               <p className={`text-3xl font-bold ${fearColor}`}>{crowdFear.toFixed(1)}%</p>
               {/* Bar */}
               <div className="mt-2 h-2 w-40 rounded-full bg-gray-100 overflow-hidden">
@@ -49,7 +52,7 @@ export default function Bayse() {
             </div>
 
             <div>
-              <p className="text-sm font-light text-gray-500">ZELTA Rational Model</p>
+              <p className="text-sm font-light text-gray-500">Calm Signal (ZELTA)</p>
               <p className={`text-3xl font-bold ${modelColor}`}>{zeltaModel.toFixed(1)}%</p>
               {/* Bar */}
               <div className="mt-2 h-2 w-40 rounded-full bg-gray-100 overflow-hidden">
@@ -59,9 +62,9 @@ export default function Bayse() {
           </div>
 
           <p className="mt-4 text-sm text-gray-500">
-            The Bayse crowd was{" "}
+            The crowd is{" "}
             <span className="font-semibold text-gray-700">{gap.toFixed(1)}%</span>{" "}
-            {comparison} what the data warranted. This is the behavioral panic gap that ZELTA corrects.
+            {comparison} what the data supports. Use this to avoid panic-based decisions.
           </p>
         </div>
       </div>

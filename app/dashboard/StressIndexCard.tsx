@@ -62,12 +62,12 @@ export default function StressIndexCard({
     return (
       <div className="bg-white p-5 rounded-xl space-y-4 shadow-sm">
         <div className="flex justify-between items-center">
-          <p className="font-bold uppercase text-sm">Student Stress Index</p>
+          <p className="font-bold uppercase text-sm">Market Panic Level</p>
           <span className="p-2 bg-emerald-100 rounded-lg">
             <TrendingDown color="green" />
           </span>
         </div>
-        <p className="text-gray-400 text-sm">Awaiting stress data…</p>
+        <p className="text-gray-400 text-sm">Waiting for market emotion data...</p>
       </div>
     );
   }
@@ -106,7 +106,7 @@ export default function StressIndexCard({
   return (
     <div className="bg-white p-5 rounded-xl space-y-4 shadow-sm">
       <div className="flex justify-between items-center">
-        <p className="font-bold uppercase text-sm">Student Stress Index</p>
+        <p className="font-bold uppercase text-sm">Market Panic Level</p>
         <span className="p-2 bg-emerald-100 rounded-lg">
           <Icon color={iconColor} />
         </span>
@@ -118,7 +118,11 @@ export default function StressIndexCard({
       </h2>
 
       <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium ${badgeBg}`}>
-        {level}
+        {level === "CALM"
+          ? "Calm"
+          : level === "MODERATE"
+          ? "Moderate"
+          : "High Panic"}
       </span>
 
       {/* Progress bar — shows the combined stress index */}
@@ -138,6 +142,9 @@ export default function StressIndexCard({
       {stress_label && (
         <p className="text-xs text-gray-500 leading-relaxed">{stress_label}</p>
       )}
+      <p className="text-xs text-gray-500 leading-relaxed">
+        This tracks market emotion and crowd panic, not school stress.
+      </p>
 
       {/* MiniStats:
             Bayse Crowd = what the crowd is pricing in (crowd_stress from /api/bayse/stress)
@@ -145,13 +152,13 @@ export default function StressIndexCard({
       */}
       <div className="flex gap-3">
         <MiniStat
-          title="Bayse Crowd"
+          title="Market Fear Level (Bayse)"
           value={`${crowdFear}%`}
           color="orange"
           tooltip="Crowd fear signal from Bayse prediction market"
         />
         <MiniStat
-          title="Zelta Model"
+          title="Calm Signal (ZELTA)"
           value={`${zeltaModel}%`}
           color="green"
           tooltip="Rational model probability (100 − crowd fear)"

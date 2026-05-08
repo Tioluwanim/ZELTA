@@ -279,7 +279,7 @@ function BalanceCard({ wallet, visible }: { wallet: WalletSummary; visible: bool
         {[
           { label: "Free Cash", value: fmt(wallet.free_cash) },
           { label: "Locked", value: fmt(wallet.locked_amount) },
-          { label: "Burn/wk", value: fmt(wallet.weekly_burn_rate) },
+          { label: "Weekly Pace", value: fmt(wallet.weekly_burn_rate) },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-xl bg-white/15 p-3">
             <p className="text-[10px] font-medium text-emerald-100 uppercase tracking-wide">{label}</p>
@@ -335,7 +335,7 @@ function SavingsGoalsSection({ goals }: { goals: SavingsGoal[] }) {
       <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-5 py-8 text-center">
         <Lock className="mx-auto h-8 w-8 text-gray-300" />
         <p className="mt-2 text-sm font-medium text-gray-500">No locked goals yet</p>
-        <p className="text-xs text-gray-400">Tap "Lock Goal" to start saving towards a target</p>
+        <p className="text-xs text-gray-400">Tap "Lock Goal" to start a target like rent, fees, or school needs.</p>
       </div>
     );
   }
@@ -370,7 +370,7 @@ function SpendingHeat({ items }: { items: SpendingHeatItem[] }) {
   if (!items?.length) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-6 text-center text-sm text-gray-400">
-        No spending data yet. Add an expense to get started.
+        No spending data yet. Add your first expense to see where your money goes each week.
       </div>
     );
   }
@@ -411,7 +411,7 @@ function RecentTransactions({ transactions }: { transactions: Transaction[] }) {
   if (!transactions?.length) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-6 text-center text-sm text-gray-400">
-        No transactions yet.
+        No transactions yet. Start with "Add Income" or "Add Expense" to build your wallet history.
       </div>
     );
   }
@@ -471,6 +471,7 @@ export default function WalletPage() {
       <div className="px-3 pb-10 lg:px-0">
         <PageHeader title="ZELTA Wallet" description="Unified view of your finances">
           <button onClick={() => setVisible((v) => !v)}
+            aria-label={visible ? "Hide wallet amounts" : "Show wallet amounts"}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50">
             {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           </button>
@@ -495,6 +496,9 @@ export default function WalletPage() {
               {wallet.data.bq_alerts?.length > 0 && <BqAlerts alerts={wallet.data.bq_alerts} />}
 
               <BalanceCard wallet={wallet.data} visible={visible} />
+              <p className="text-xs text-gray-500 -mt-3">
+                Weekly Spending Pace shows how fast money is leaving your wallet this week.
+              </p>
 
               {/* ── Reference image: 3-card horizontal action row ── */}
               <ActionCards onAction={setActiveModal} />
@@ -511,8 +515,8 @@ export default function WalletPage() {
 
               <div>
                 <div className="mb-3">
-                  <h2 className="font-bold text-gray-900">Behavioral Spending Map</h2>
-                  <p className="text-xs text-gray-500">Your spending pattern by category</p>
+                  <h2 className="font-bold text-gray-900">Spending by Category</h2>
+                  <p className="text-xs text-gray-500">Simple view of where your money goes most</p>
                 </div>
                 <SpendingHeat items={wallet.data.spending_heat ?? []} />
               </div>

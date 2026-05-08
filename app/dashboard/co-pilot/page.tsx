@@ -20,9 +20,9 @@ import type { CopilotMessage, CopilotResponse } from "@/types/zelta";
 // ─── Suggested prompts ────────────────────────────────────────────
 
 const SUGGESTED_PROMPTS = [
+  "I am confused. What should I do with my money this week?",
   "Should I invest my free cash this week?",
   "Am I making emotional decisions right now?",
-  "What's the safest move given current market stress?",
   "How much should I save before spending?",
 ];
 
@@ -306,7 +306,7 @@ export default function CopilotPage() {
         color: "text-gray-800",
       },
       {
-        title: "Stress Index",
+        title: "Market Panic Level",
         value:
           stress.data && Number.isFinite(stress.data.stress_index)
             ? `${Math.round(stress.data.stress_index)}/100`
@@ -321,7 +321,7 @@ export default function CopilotPage() {
             : "text-gray-500",
       },
       {
-        title: "Bayse Fear",
+        title: "Market Fear Level (Bayse)",
         // crowd_stress is 0-100 — no *100
         value:
           bayse.data?.stress && Number.isFinite(bayse.data.stress.crowd_stress)
@@ -394,8 +394,8 @@ export default function CopilotPage() {
   return (
     <div className="px-3 lg:px-0 pb-10">
       <PageHeader
-        title="BQ Co-pilot"
-        description="Ask anything about your financial decisions"
+        title="ZELTA Co-pilot"
+        description="Confused? Ask ZELTA anything."
       />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
@@ -408,13 +408,14 @@ export default function CopilotPage() {
                 <MessageSquare className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">BQ Co-pilot</h2>
-                <p className="text-xs text-gray-500">Powered by Gemini + Bayesian signals</p>
+                <h2 className="font-bold text-gray-900">ZELTA Co-pilot</h2>
+                <p className="text-xs text-gray-500">Powered by AI and your live market-emotion signals</p>
               </div>
             </div>
             {!isEmpty && (
               <button
                 onClick={handleClear}
+                aria-label="Clear conversation"
                 className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-gray-50"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -439,7 +440,7 @@ export default function CopilotPage() {
                 <div>
                   <p className="font-semibold text-gray-800">Ask me anything about your finances</p>
                   <p className="mt-1 text-sm text-gray-500">
-                    I use your live signals to give bias-corrected guidance.
+                    I use your live signals to give simple, step-by-step guidance.
                   </p>
                 </div>
                 <div className="grid w-full gap-2 sm:grid-cols-2">
@@ -447,6 +448,7 @@ export default function CopilotPage() {
                     <button
                       key={prompt}
                       onClick={() => sendMessage(prompt)}
+                      aria-label={`Use suggested question: ${prompt}`}
                       className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-left text-xs text-gray-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
                     >
                       <Zap className="mb-1 h-3.5 w-3.5 text-emerald-400" />
@@ -500,12 +502,14 @@ export default function CopilotPage() {
                   }
                 }}
                 placeholder="What should I do with my savings this month?"
+                aria-label="Ask ZELTA Co-pilot a question"
                 disabled={copilot.loading}
                 className="flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
               />
               <button
                 type="submit"
                 disabled={copilot.loading || !question.trim()}
+                aria-label="Send message"
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#10b981] text-white transition hover:bg-[#0b9268] disabled:opacity-40"
               >
                 {copilot.loading ? (
@@ -557,9 +561,9 @@ export default function CopilotPage() {
             </div>
             <div className="space-y-3 text-sm text-gray-600">
               {[
-                { icon: "1", text: "Your question is sent with live Bayse + stress signals as context" },
-                { icon: "2", text: "Gemini AI reasons through your behavioral profile and market data" },
-                { icon: "3", text: "You get a bias-corrected, plain-English financial recommendation" },
+                { icon: "1", text: "Your question is sent with your current market panic and Bayse signals" },
+                { icon: "2", text: "AI checks your context and risk signals before answering" },
+                { icon: "3", text: "You get a plain-English next step you can act on" },
               ].map(({ icon, text }) => (
                 <div key={icon} className="flex gap-3">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700">

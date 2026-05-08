@@ -116,10 +116,10 @@ export default function WeeklyVerdictCard({
         <Icon className="h-5 w-5 mt-0.5 shrink-0" />
         <div>
           <h2 className="font-bold uppercase tracking-wide text-sm">
-            ZELTA Weekly Verdict
+            Weekly Recommendation
           </h2>
           <p className="text-xs opacity-80">
-            Based on Bayse + Bayesian + Kelly model
+            Your practical next step for this week
           </p>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function WeeklyVerdictCard({
       {/* Primary recommendation */}
       <div>
         <p className="text-xs uppercase opacity-70 tracking-widest">
-          Recommendation
+          Do this today
         </p>
         <h3 className="text-3xl lg:text-5xl font-bold mt-1">
           {cfg.label} ₦{formattedAmount}
@@ -143,8 +143,7 @@ export default function WeeklyVerdictCard({
         {/* Fallback message for a pure HOLD with no allocation text */}
         {key === "HOLD" && !allocation_plain && (
           <p className="text-sm mt-2 opacity-80">
-            Market conditions suggest holding. Monitor Bayse signals before
-            deploying capital.
+            Hold your money for now. Market emotion is elevated, so wait for a calmer signal before committing cash.
           </p>
         )}
       </div>
@@ -157,6 +156,7 @@ export default function WeeklyVerdictCard({
               key={s.key}
               title={s.title}
               value={`₦${s.value.toLocaleString()}`}
+              subtitle={s.key === "save_ngn" ? "Safety buffer" : "Optional allocation"}
             />
           ))}
         </div>
@@ -172,17 +172,26 @@ export default function WeeklyVerdictCard({
         className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition p-3 text-sm font-semibold rounded-xl border border-white/30"
         onClick={() => navigate.push("/dashboard/simulations")}
       >
-        Run Full Simulation
+        See plan details
       </button>
     </div>
   );
 }
 
-function Stat({ title, value }: { title: string; value: string }) {
+function Stat({
+  title,
+  value,
+  subtitle,
+}: {
+  title: string;
+  value: string;
+  subtitle: string;
+}) {
   return (
     <div className="flex-1 border border-white/40 p-3 rounded-lg">
       <p className="text-xs uppercase opacity-70">{title}</p>
       <p className="font-bold">{value}</p>
+      <p className="text-[11px] opacity-80 mt-0.5">{subtitle}</p>
     </div>
   );
 }

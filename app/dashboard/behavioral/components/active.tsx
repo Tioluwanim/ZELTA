@@ -40,8 +40,8 @@ export default function Active() {
             <MessageSquareQuote className="h-5 w-5 text-orange-400" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800">Active Bias Detected</h2>
-            <p className="text-sm text-gray-500">Based on bias signals + wallet patterns</p>
+            <h2 className="text-lg font-bold text-gray-800">Main pattern to watch</h2>
+            <p className="text-sm text-gray-500">A coaching summary from your recent choices</p>
           </div>
         </div>
 
@@ -62,12 +62,12 @@ export default function Active() {
             {data.explanation ||
               (isRational
                 ? "Market appears stable. Your decisions are tracking the data well."
-                : "A cognitive bias is influencing your decisions. Review before acting.")}
+                : "You may be reacting emotionally. Pause, review your plan, then decide.")}
           </p>
 
           {/* Bias strength */}
           <div className="mt-6 flex justify-between px-5 lg:mt-3 lg:justify-start lg:gap-40 lg:px-0">
-            <p className="text-gray-500">Bias Strength</p>
+            <p className="text-gray-500">Influence level</p>
             <p className={`text-sm font-bold ${
               strengthPct >= 60 ? "text-red-500"
               : strengthPct >= 30 ? "text-orange-400"
@@ -87,7 +87,7 @@ export default function Active() {
           {/* Evidence */}
           <div className="mx-auto mt-5 w-[92%] rounded-2xl border border-orange-400/30 bg-orange-200/20 pb-4 lg:ml-5 lg:mt-3 lg:w-[95%] lg:pb-0">
             <h2 className="ml-5 mt-5 text-sm font-bold text-gray-800">
-              Evidence from Transactions
+              Why this was detected
             </h2>
             <div className="mt-2 space-y-2 pb-4">
               {evidence.length > 0 ? (
@@ -113,7 +113,7 @@ export default function Active() {
         {/* Correction */}
         <div className="mx-auto mt-5 w-[94%] rounded-2xl bg-white p-5 lg:mx-0 lg:ml-7 lg:p-0">
           <h1 className="font-bold text-gray-800 lg:relative lg:top-2 lg:ml-5">
-            ZELTA Correction Applied:
+            Recommended adjustment
           </h1>
           <p className="mt-3 text-sm text-gray-500 lg:ml-5 lg:pb-4">
             {data.correction_plain || "No correction available."}

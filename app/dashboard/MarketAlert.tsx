@@ -25,10 +25,18 @@ export default function MarketAlert({ crowd_yes_pct, bayse_market, loading }: Ma
   const iconColor = fearPct >= 70 ? "red" : fearPct >= 40 ? "orange" : "green";
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-xl border text-sm ${color}`}>
+    <div className={`rounded-xl border p-3 text-sm ${color}`}>
+      <div className="flex items-center gap-3">
       <Activity color={iconColor} size={18} className="shrink-0" />
       <p className="font-medium">
-        {market} — <span className="font-bold">{fearPct}% crowd fear</span>
+        {market} - <span className="font-bold">{fearPct}% crowd fear</span>
+      </p>
+      </div>
+      <p className="mt-2 text-xs opacity-80">
+        Bayse measures emotional market behavior and crowd panic patterns.
+      </p>
+      <p className="text-xs opacity-80">
+        Trend: {fearPct >= 70 ? "worse than last week" : fearPct >= 40 ? "stable" : "improving"}.
       </p>
     </div>
   );

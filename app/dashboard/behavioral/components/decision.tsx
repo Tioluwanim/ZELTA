@@ -33,8 +33,8 @@ export default function Decision() {
           <Brain className="h-5 w-5 text-green-400" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-800">Decision Confidence Score</h2>
-          <p className="text-sm text-gray-500">Current rational vs behavioral split</p>
+          <h2 className="text-lg font-bold text-gray-800">Decision Balance</h2>
+          <p className="text-sm text-gray-500">How much of your choice is plan vs impulse</p>
         </div>
       </div>
 
@@ -43,7 +43,7 @@ export default function Decision() {
         {/* Rational */}
         <div className="w-full rounded-2xl bg-green-50 p-5 lg:max-w-xl">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-800">Rational</h3>
+            <h3 className="font-bold text-gray-800">Planned choice</h3>
             <p className="text-4xl font-bold text-green-600">{rationalPct}%</p>
           </div>
           <div className="mt-3 h-3 overflow-hidden rounded-full bg-green-100">
@@ -53,14 +53,14 @@ export default function Decision() {
             />
           </div>
           <p className="mt-3 text-sm text-gray-500">
-            Decisions based on Bayesian model and Kelly sizing.
+            Decisions guided by your plan and risk rules.
           </p>
         </div>
 
         {/* Behavioral */}
         <div className="w-full rounded-2xl bg-orange-50 p-5 lg:max-w-xl">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-800">Behavioral Impulse</h3>
+            <h3 className="font-bold text-gray-800">Emotional impulse</h3>
             <p className="text-4xl font-bold text-orange-600">{behavioralPct}%</p>
           </div>
           <div className="mt-3 h-3 overflow-hidden rounded-full bg-orange-100">
@@ -70,7 +70,7 @@ export default function Decision() {
             />
           </div>
           <p className="mt-3 text-sm text-gray-500">
-            Driven by stress, fear, and market panic.
+            Usually triggered by fear, urgency, or hype.
           </p>
         </div>
       </section>
@@ -82,14 +82,14 @@ export default function Decision() {
             <span className="text-xs font-bold">!</span>
           </div>
           <h4 className="font-bold text-gray-800">
-            Confidence Gap: {confidenceGap}%
+            Gap between plan and impulse: {confidenceGap}%
             <span className={`ml-2 text-sm font-semibold ${gapSeverity.text}`}>
               — {gapSeverity.label}
             </span>
           </h4>
         </div>
         <p className="mt-3 text-sm text-gray-500">
-          | rational recommendation − behavioral impulse | ={" "}
+          Difference between your planned choice and emotional impulse is{" "}
           <span className="font-bold text-gray-800">{confidenceGap}%</span>.{" "}
           {confidenceGap >= 40
             ? "ZELTA intervention is strongly recommended."

@@ -20,7 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/wallet": "Wallet",
   "/dashboard/behavioral": "Behavioral Snapshot",
   "/dashboard/simulations": "Portfolio Simulations",
-  "/dashboard/co-pilot": "BQ Co-pilot",
+  "/dashboard/co-pilot": "ZELTA Co-pilot",
   "/dashboard/history": "Decision History",
   "/dashboard/profile": "Profile & Settings",
 };
@@ -83,13 +83,17 @@ export default function DashboardHeader() {
       <p className="text-sm font-medium text-gray-500">{pageTitle}</p>
 
       <div className="flex items-center gap-3">
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100">
+        <button
+          aria-label="Notifications"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
+        >
           <Bell className="h-5 w-5 stroke-[1.5]" />
         </button>
 
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
+            aria-label="Open profile menu"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-[#10b981] text-sm font-semibold text-white transition hover:bg-[#0b9268] focus:outline-none focus:ring-2 focus:ring-[#10b981] focus:ring-offset-2"
           >
             {initials}
