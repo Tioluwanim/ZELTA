@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Verdict } from "@/types/zelta";
@@ -15,12 +16,15 @@ interface VerdictProp {
 
 type VerdictKey = "INVEST" | "SAVE" | "HOLD";
 
-const CONFIG: Record<VerdictKey, {
-  gradient: string;
-  label: string;
-  icon: React.ElementType;
-  primaryField: "invest_ngn" | "save_ngn" | "hold_ngn";
-}> = {
+const CONFIG: Record<
+  VerdictKey,
+  {
+    gradient: string;
+    label: string;
+    icon: React.ElementType;
+    primaryField: "invest_ngn" | "save_ngn" | "hold_ngn";
+  }
+> = {
   INVEST: {
     gradient: "from-emerald-500 to-emerald-700",
     label: "Invest",
@@ -51,26 +55,41 @@ export default function WeeklyVerdictCard({
 }: VerdictProp) {
   const navigate = useRouter();
 
-  const key = (verdict ?? "HOLD").toUpperCase() as VerdictKey;
+  const key = ((verdict ?? "HOLD") as string).toUpperCase() as VerdictKey;
   const cfg = CONFIG[key] ?? CONFIG.HOLD;
   const Icon = cfg.icon;
 
   const amounts = { invest_ngn, save_ngn, hold_ngn };
   const primaryAmount = amounts[cfg.primaryField] ?? 0;
 
-  // Build secondary stats: show only the other two, but only if non-zero
+  // Secondary stats: exclude the primary field, and hide any that are zero
   const secondaryStats = (
     [
       { title: "Invest",    value: invest_ngn, key: "invest_ngn" },
-      { title: "Save",      value: save_ngn,   key: "save_ngn" },
-      { title: "Hold Cash", value: hold_ngn,   key: "hold_ngn" },
+      { title: "Save",      value: save_ngn,   key: "save_ngn"   },
+      { title: "Hold Cash", value: hold_ngn,   key: "hold_ngn"   },
     ] as { title: string; value: number; key: string }[]
   ).filter((s) => s.key !== cfg.primaryField && s.value > 0);
 
+  // FIX 1: Compare allocation_plain using the locale-formatted amount string,
+  // not the raw number. e.g. primaryAmount=56500 → "56,500", so we check
+  // against "Hold ₦56,500" not "Hold ₦56500" — the raw number would always fail.
+  const formattedAmount = primaryAmount.toLocaleString();
+  const plainIsRedundant =
+    !!allocation_plain &&
+    allocation_plain.startsWith(`${cfg.label} ₦${formattedAmount}`);
+
   /* ── Loading skeleton ── */
-  if (loading && primaryAmount === 0 && invest_ngn === 0 && save_ngn === 0 && hold_ngn === 0) {
+  if (
+    loading &&
+    invest_ngn === 0 &&
+    save_ngn === 0 &&
+    hold_ngn === 0
+  ) {
     return (
-      <div className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-4 animate-pulse`}>
+      <div
+        className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-4 animate-pulse`}
+      >
         <div className="flex gap-3 items-center">
           <div className="h-5 w-5 bg-white/30 rounded" />
           <div className="space-y-1">
@@ -89,7 +108,9 @@ export default function WeeklyVerdictCard({
   }
 
   return (
-    <div className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-5`}>
+    <div
+      className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-5`}
+    >
       {/* Header */}
       <div className="flex gap-3 items-start">
         <Icon className="h-5 w-5 mt-0.5 shrink-0" />
@@ -109,39 +130,43 @@ export default function WeeklyVerdictCard({
           Recommendation
         </p>
         <h3 className="text-3xl lg:text-5xl font-bold mt-1">
-          {cfg.label} ₦{primaryAmount.toLocaleString()}
+          {cfg.label} ₦{formattedAmount}
         </h3>
 
-        {/* Show allocation_plain only if it's not just repeating the number */}
-        {allocation_plain && !allocation_plain.startsWith(`${cfg.label} ₦${primaryAmount}`) && (
+        {/* Show allocation_plain only when it adds new information */}
+        {allocation_plain && !plainIsRedundant && (
           <p className="text-sm mt-2 opacity-90 leading-relaxed">
             {allocation_plain}
           </p>
         )}
-        {/* Default hold message when AI returns zero secondary amounts */}
+
+        {/* Fallback message for a pure HOLD with no allocation text */}
         {key === "HOLD" && !allocation_plain && (
           <p className="text-sm mt-2 opacity-80">
-            Market conditions suggest holding. Monitor Bayse signals before deploying capital.
+            Market conditions suggest holding. Monitor Bayse signals before
+            deploying capital.
           </p>
         )}
       </div>
 
-      {/* Secondary stats — only shown when non-zero */}
+      {/* Secondary stats — only rendered when non-zero */}
       {secondaryStats.length > 0 ? (
         <div className="flex gap-3">
           {secondaryStats.map((s) => (
-            <Stat key={s.key} title={s.title} value={`₦${s.value.toLocaleString()}`} />
+            <Stat
+              key={s.key}
+              title={s.title}
+              value={`₦${s.value.toLocaleString()}`}
+            />
           ))}
         </div>
-      ) : (
-        /* When all secondary amounts are zero (e.g. pure HOLD with no split),
-           show the allocation notes instead */
-        allocation_plain ? (
-          <p className="text-sm opacity-85 leading-relaxed border border-white/20 rounded-lg p-3">
-            {allocation_plain}
-          </p>
-        ) : null
-      )}
+      ) : allocation_plain ? (
+        // FIX 2: opacity-85 is not a valid Tailwind utility (only 0/5/10…80/90/95/100).
+        // Replaced with opacity-80.
+        <p className="text-sm opacity-80 leading-relaxed border border-white/20 rounded-lg p-3">
+          {allocation_plain}
+        </p>
+      ) : null}
 
       <button
         className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition p-3 text-sm font-semibold rounded-xl border border-white/30"

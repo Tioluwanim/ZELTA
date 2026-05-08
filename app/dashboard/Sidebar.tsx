@@ -6,84 +6,113 @@ import {
   Brain,
   Sparkles,
   MessageSquare,
-  User,
-  History,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-const navItems = [
-  {
-    icon: <Home className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Home",
-    href: "/dashboard",
-  },
-  {
-    icon: <Wallet className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Wallet",
-    href: "/dashboard/wallet",
-  },
-  {
-    icon: <Brain className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Behavioral",
-    href: "/dashboard/behavioral",
-  },
-  {
-    icon: <Sparkles className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Simulation",
-    href: "/dashboard/simulations",
-  },
-  {
-    icon: <MessageSquare className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Co-Pilot",
-    href: "/dashboard/co-pilot",
-  },
-  {
-    icon: <History className="stroke-2 lg:stroke-1 size-6" />,
-    label: "History",
-    href: "/dashboard/history",
-  },
-  {
-    icon: <User className="stroke-2 lg:stroke-1 size-6" />,
-    label: "Profile",
-    href: "/dashboard/profile",
-  },
+// Profile and History are accessible from the header avatar dropdown.
+// The sidebar only carries the 5 primary sections.
+const NAV_ITEMS = [
+  { icon: Home,          label: "Home",        href: "/dashboard" },
+  { icon: Wallet,        label: "Wallet",       href: "/dashboard/wallet" },
+  { icon: Brain,         label: "Behavioral",   href: "/dashboard/behavioral" },
+  { icon: Sparkles,      label: "Simulations",  href: "/dashboard/simulations" },
+  { icon: MessageSquare, label: "Co-Pilot",     href: "/dashboard/co-pilot" },
 ];
 
 export default function Sidebar() {
-  const pathName = usePathname();
-  // const mobileNavigationWithoutProfileAndHistortyTab = navItems.filter(
-  //   (item, index) => index < 5,
-  // );
+  const pathname = usePathname();
+
+  const isActive = (href: string) =>
+    href === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname.startsWith(href);
+
   return (
-    <aside className="flex flex-col lg:h-full lg:justify-between lg:p-6 pb-0 fixed left-0 bottom-0 w-full lg:bottom-auto lg:w-64 lg:top-0 overflow-hidden z-1000">
-      <div className="">
-        <div className="mb-8 px-2 hidden lg:block">
-          <p className="text-2xl font-bold text-green-600">ZELTA</p>
-          <p className="text-sm text-slate-500">Financial Intelligence</p>
+    <>
+      {/* ── Desktop sidebar ─────────────────────────────────────── */}
+      <aside className="hidden lg:flex flex-col h-full px-4 py-6 gap-6">
+        {/* Brand */}
+        <div className="px-2">
+          <p className="text-xl font-bold text-[#10b981] tracking-tight">ZELTA</p>
+          <p className="text-xs text-slate-400 mt-0.5 font-medium tracking-wide uppercase">
+            Financial Intelligence
+          </p>
         </div>
 
-        <nav className="lg:space-y-2 flex bg-white lg:bg-transparent justify-center items-center sm:gap-8 md:gap-8 lg:block lg:p-0 p-2  ">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`rounded-2xl px-3 py-3 text-md font-bold transition flex flex-col lg:flex-row gap-2  lg:gap-4 items-center ${pathName === item.href || (item.href !== "/dashboard" && pathName.startsWith(item.href)) ? "bg-[#10b981] text-white" : "hover:bg-gray-100"}     `}
-            >
-              <span>{item.icon}</span>
-              <span className="text-[10px] lg:hidden">{item.label}</span>
-              <span className="hidden lg:block text-[15px]">{item.label} </span>
-            </Link>
-          ))}
-        </nav>
-      </div>
+        {/* Nav */}
+        <nav className="flex-1 space-y-1">
+          {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                  active
+                    ? "bg-[#10b981] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                <Icon
+                  className={`h-5 w-5 shrink-0 transition-colors ${
+                    active
+                      ? "text-white"
+                      : "text-slate-400 group-hover:text-gray-700"
+                  }`}
+                  strokeWidth={active ? 2 : 1.75}
+                />
+                <span>{label}</span>
 
-      <div className=" hidden lg:block rounded-2xl border border-slate-200 bg-green-50 p-4 text-sm text-slate-700">
-        <p className="font-semibold text-slate-900">Dashboard info</p>
-        <p className="mt-2 text-slate-600">
-          Use the sidebar to switch sections. The right side renders selected
-          dashboard content.
-        </p>
-      </div>
-    </aside>
+                {/* Active indicator dot */}
+                {active && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/70" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer hint */}
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs text-slate-500 leading-relaxed">
+          <p className="font-semibold text-slate-700 mb-1">Tip</p>
+          Profile and Decision History are available from the avatar menu at the top right.
+        </div>
+      </aside>
+
+      {/* ── Mobile bottom bar ───────────────────────────────────── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-100 bg-white px-2 py-1 safe-pb">
+        {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
+          const active = isActive(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition-all ${
+                active ? "text-[#10b981]" : "text-slate-400"
+              }`}
+            >
+              {/* Active: filled pill background */}
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-xl transition-all ${
+                  active ? "bg-emerald-50" : ""
+                }`}
+              >
+                <Icon
+                  className="h-5 w-5"
+                  strokeWidth={active ? 2.25 : 1.75}
+                />
+              </span>
+              <span
+                className={`text-[10px] font-medium leading-none ${
+                  active ? "text-[#10b981]" : "text-slate-400"
+                }`}
+              >
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }
