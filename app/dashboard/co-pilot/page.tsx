@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import PageHeader from "@/components/PageHeader";
 import {
   Activity,
@@ -11,6 +11,8 @@ import {
   User,
   RefreshCw,
   Zap,
+  ChevronDown,
+  Info,
 } from "lucide-react";
 import { useWallet, useCopilot, useStress, useBayseSignals } from "@/hooks/zelta";
 import type { CopilotMessage, CopilotResponse } from "@/types/zelta";
@@ -24,15 +26,100 @@ const SUGGESTED_PROMPTS = [
   "How much should I save before spending?",
 ];
 
+// ─── Markdown-lite renderer ───────────────────────────────────────
+// Renders **bold**, *italic*, bullet lists, numbered lists, and line breaks
+// without a heavy library. Preserves all characters — nothing is truncated.
+
+function renderMarkdown(text: string): React.ReactNode[] {
+  if (!text) return [];
+
+  // Split into paragraphs / blocks by double newline
+  const blocks = text.split(/\n\n+/);
+
+  return blocks.map((block, blockIdx) => {
+    const lines = block.split("\n");
+
+    // Detect bullet list block
+    const isBullet = lines.every((l) => /^\s*[-*•]\s/.test(l) || l.trim() === "");
+    const isNumbered = lines.every((l) => /^\s*\d+\.\s/.test(l) || l.trim() === "");
+
+    if (isBullet) {
+      return (
+        <ul key={blockIdx} className="mt-2 list-disc pl-5 space-y-1">
+          {lines.filter((l) => l.trim()).map((line, i) => (
+            <li key={i}>{inlineFormat(line.replace(/^\s*[-*•]\s/, ""))}</li>
+          ))}
+        </ul>
+      );
+    }
+
+    if (isNumbered) {
+      return (
+        <ol key={blockIdx} className="mt-2 list-decimal pl-5 space-y-1">
+          {lines.filter((l) => l.trim()).map((line, i) => (
+            <li key={i}>{inlineFormat(line.replace(/^\s*\d+\.\s/, ""))}</li>
+          ))}
+        </ol>
+      );
+    }
+
+    // Normal paragraph — join lines with space but preserve single newlines
+    return (
+      <p key={blockIdx} className={blockIdx > 0 ? "mt-2" : ""}>
+        {lines.map((line, li) => (
+          <React.Fragment key={li}>
+            {inlineFormat(line)}
+            {li < lines.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+      </p>
+    );
+  });
+}
+
+// Bold (**text**), italic (*text*), inline code (`code`)
+function inlineFormat(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  // Pattern: **bold**, *italic*, `code`
+  const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`)/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push(text.slice(last, match.index));
+    }
+    if (match[2]) {
+      parts.push(<strong key={match.index}>{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<em key={match.index}>{match[3]}</em>);
+    } else if (match[4]) {
+      parts.push(
+        <code key={match.index} className="rounded bg-black/10 px-1 py-0.5 text-[11px] font-mono">
+          {match[4]}
+        </code>
+      );
+    }
+    last = match.index + match[0].length;
+  }
+
+  if (last < text.length) {
+    parts.push(text.slice(last));
+  }
+
+  return parts.length === 0 ? text : <>{parts}</>;
+}
+
 // ─── Message bubble ───────────────────────────────────────────────
 
-function MessageBubble({ message, isLast }: { message: CopilotMessage; isLast: boolean }) {
+function MessageBubble({ message }: { message: CopilotMessage }) {
   const isUser = message.role === "user";
+
   return (
-    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} items-start`}>
       {/* Avatar */}
       <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-0.5 ${
           isUser ? "bg-[#10b981]" : "bg-slate-100"
         }`}
       >
@@ -43,15 +130,24 @@ function MessageBubble({ message, isLast }: { message: CopilotMessage; isLast: b
         )}
       </div>
 
-      {/* Bubble */}
+      {/* Bubble — no max-width cap on assistant, full width allowed */}
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+        className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "rounded-tr-sm bg-[#10b981] text-white"
-            : "rounded-tl-sm border border-gray-100 bg-white text-gray-800"
+            ? "max-w-[80%] rounded-tr-sm bg-[#10b981] text-white"
+            : "w-full rounded-tl-sm border border-gray-100 bg-white text-gray-800"
         }`}
       >
-        <p className="whitespace-pre-line">{message.content}</p>
+        {isUser ? (
+          // User messages: plain text, no markdown
+          <p className="whitespace-pre-line">{message.content}</p>
+        ) : (
+          // Assistant messages: full markdown render, no truncation
+          <div className="prose-sm max-w-none text-gray-800">
+            {renderMarkdown(message.content)}
+          </div>
+        )}
+
         {message.timestamp && (
           <p
             className={`mt-1.5 text-[10px] ${
@@ -74,7 +170,7 @@ function MessageBubble({ message, isLast }: { message: CopilotMessage; isLast: b
 
 function TypingIndicator() {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 items-start">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
         <Bot className="h-4 w-4 text-slate-500" />
       </div>
@@ -96,21 +192,33 @@ function ContextPills({ response }: { response: CopilotResponse }) {
   return (
     <div className="mt-3 rounded-2xl border border-gray-100 bg-slate-50 p-4">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Response Summary
+        Response Context
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         {response.context_pills.map((pill, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-gray-200 bg-white p-3"
-          >
+          <div key={i} className="rounded-xl border border-gray-200 bg-white p-3">
             <p className="text-xs text-gray-500">{pill.label}</p>
-            <p className="mt-0.5 text-sm font-semibold text-gray-900">
-              {pill.value}
-            </p>
+            <p className="mt-0.5 text-sm font-semibold text-gray-900">{pill.value}</p>
           </div>
         ))}
       </div>
+
+      {/* Verdict badge */}
+      {response.verdict && response.verdict !== "HOLD" && response.verdict_amount != null && response.verdict_amount > 0 && (
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2">
+          <Info className="h-4 w-4 text-emerald-500 shrink-0" />
+          <p className="text-sm text-emerald-700 font-medium">
+            {response.verdict}: ₦{response.verdict_amount.toLocaleString()}
+          </p>
+        </div>
+      )}
+
+      {/* Confidence */}
+      {response.confidence != null && response.confidence > 0 && (
+        <p className="mt-2 text-xs text-gray-400">
+          Response confidence: {Math.round(response.confidence)}%
+        </p>
+      )}
     </div>
   );
 }
@@ -140,6 +248,20 @@ function StatCard({
   );
 }
 
+// ─── Scroll-to-bottom button ─────────────────────────────────────
+
+function ScrollToBottomBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="absolute bottom-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50 transition"
+      title="Scroll to latest"
+    >
+      <ChevronDown className="h-4 w-4 text-gray-500" />
+    </button>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────
 
 export default function CopilotPage() {
@@ -151,16 +273,29 @@ export default function CopilotPage() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [lastResponse, setLastResponse] = useState<CopilotResponse | null>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
-  // Auto-scroll to bottom on new messages
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  // Auto-scroll whenever messages change or loading state changes
+  const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, copilot.loading]);
+  }, []);
 
-  // Live context stats
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, copilot.loading, scrollToBottom]);
+
+  // Track scroll position to show/hide scroll-to-bottom button
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBtn(distFromBottom > 120);
+  }, []);
+
   const isLoading = wallet.loading || stress.loading || bayse.loading;
 
   const stats = useMemo(
@@ -172,24 +307,26 @@ export default function CopilotPage() {
       },
       {
         title: "Stress Index",
-        // stress_index is 0-100; guard against NaN
-        value: stress.data && Number.isFinite(stress.data.stress_index)
-          ? `${Math.round(stress.data.stress_index)}/100`
-          : "—",
-        color: stress.data && Number.isFinite(stress.data.stress_index)
-          ? stress.data.stress_index > 60
-            ? "text-red-500"
-            : stress.data.stress_index > 30
-            ? "text-yellow-500"
-            : "text-emerald-500"
-          : "text-gray-500",
+        value:
+          stress.data && Number.isFinite(stress.data.stress_index)
+            ? `${Math.round(stress.data.stress_index)}/100`
+            : "—",
+        color:
+          stress.data && Number.isFinite(stress.data.stress_index)
+            ? stress.data.stress_index > 60
+              ? "text-red-500"
+              : stress.data.stress_index > 30
+              ? "text-yellow-500"
+              : "text-emerald-500"
+            : "text-gray-500",
       },
       {
         title: "Bayse Fear",
-        // crowd_stress is 0-100 from /api/bayse/stress — do NOT multiply by 100
-        value: bayse.data?.stress && Number.isFinite(bayse.data.stress.crowd_stress)
-          ? `${Math.round(bayse.data.stress.crowd_stress)}%`
-          : "—",
+        // crowd_stress is 0-100 — no *100
+        value:
+          bayse.data?.stress && Number.isFinite(bayse.data.stress.crowd_stress)
+            ? `${Math.round(bayse.data.stress.crowd_stress)}%`
+            : "—",
         color: "text-orange-400",
       },
     ],
@@ -206,16 +343,23 @@ export default function CopilotPage() {
       timestamp: new Date().toISOString(),
     };
 
-    const nextMessages = [...messages, userMsg];
-    setMessages(nextMessages);
+    // Snapshot history BEFORE adding the new user message.
+    // The backend service already slices to last 6 turns.
+    // We do NOT include the current question in conversation_history —
+    // it is passed separately in the `question` field to avoid duplication.
+    const historyBeforeThisMessage = [...messages];
+
+    setMessages((prev) => [...prev, userMsg]);
     setQuestion("");
 
     const response = await copilot.runCopilot({
       question: trimmed,
-      conversation_history: nextMessages,
+      // history = all previous turns, NOT including the current question
+      conversation_history: historyBeforeThisMessage,
       context: {
         free_cash: wallet.data?.free_cash ?? 0,
         stress_index: stress.data?.stress_index ?? 0,
+        // crowd_stress is 0-100
         bayse_fear: bayse.data?.stress?.crowd_stress ?? 0,
       },
     });
@@ -226,7 +370,7 @@ export default function CopilotPage() {
         ...prev,
         {
           role: "assistant",
-          content: response.answer,
+          content: response.answer,  // full answer — no truncation
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -257,7 +401,7 @@ export default function CopilotPage() {
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
         {/* ── Chat panel ── */}
         <section className="flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-          {/* Chat header */}
+          {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-emerald-100 p-2">
@@ -265,9 +409,7 @@ export default function CopilotPage() {
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">BQ Co-pilot</h2>
-                <p className="text-xs text-gray-500">
-                  Powered by Gemini + Bayesian signals
-                </p>
+                <p className="text-xs text-gray-500">Powered by Gemini + Bayesian signals</p>
               </div>
             </div>
             {!isEmpty && (
@@ -281,23 +423,25 @@ export default function CopilotPage() {
             )}
           </div>
 
-          {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-5" style={{ minHeight: "360px", maxHeight: "480px" }}>
+          {/* Messages — grows to fit content, scroll-anchored */}
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="relative flex-1 overflow-y-auto p-5"
+            style={{ minHeight: "400px", maxHeight: "calc(100vh - 340px)" }}
+          >
             {isEmpty ? (
-              <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
+              /* Empty state */
+              <div className="flex h-full flex-col items-center justify-center gap-6 text-center py-10">
                 <div className="rounded-full bg-emerald-50 p-5">
                   <Sparkles className="h-8 w-8 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-800">
-                    Ask me anything about your finances
-                  </p>
+                  <p className="font-semibold text-gray-800">Ask me anything about your finances</p>
                   <p className="mt-1 text-sm text-gray-500">
                     I use your live signals to give bias-corrected guidance.
                   </p>
                 </div>
-
-                {/* Suggested prompts */}
                 <div className="grid w-full gap-2 sm:grid-cols-2">
                   {SUGGESTED_PROMPTS.map((prompt) => (
                     <button
@@ -312,21 +456,23 @@ export default function CopilotPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              /* Message list — no height cap on individual messages */
+              <div className="space-y-5">
                 {messages.map((msg, i) => (
-                  <MessageBubble
-                    key={`${msg.role}-${i}`}
-                    message={msg}
-                    isLast={i === messages.length - 1}
-                  />
+                  <MessageBubble key={`${msg.role}-${i}`} message={msg} />
                 ))}
                 {copilot.loading && <TypingIndicator />}
                 <div ref={bottomRef} />
               </div>
             )}
+
+            {/* Scroll-to-bottom FAB */}
+            {showScrollBtn && !isEmpty && (
+              <ScrollToBottomBtn onClick={scrollToBottom} />
+            )}
           </div>
 
-          {/* Context pills (last response) */}
+          {/* Context pills from last response */}
           {lastResponse && !isEmpty && (
             <div className="border-t border-gray-100 px-5 pb-3">
               <ContextPills response={lastResponse} />
@@ -345,7 +491,6 @@ export default function CopilotPage() {
             <form onSubmit={handleSubmit} className="flex gap-3">
               <input
                 ref={inputRef}
-                id="copilot-question"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => {
@@ -371,7 +516,7 @@ export default function CopilotPage() {
               </button>
             </form>
             <p className="mt-2 text-center text-[10px] text-gray-400">
-              Press Enter to send • Shift+Enter for new line
+              Press Enter to send · Shift+Enter for new line
             </p>
           </div>
         </section>
@@ -386,9 +531,7 @@ export default function CopilotPage() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Your current picture</h3>
-                <p className="text-xs text-gray-500">
-                  Live signals shaping your answers
-                </p>
+                <p className="text-xs text-gray-500">Live signals shaping your answers</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -428,7 +571,7 @@ export default function CopilotPage() {
             </div>
           </div>
 
-          {/* Conversation stats */}
+          {/* Session stats */}
           {!isEmpty && (
             <div className="rounded-2xl border border-gray-100 bg-emerald-50 p-5">
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">

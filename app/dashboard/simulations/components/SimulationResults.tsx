@@ -43,12 +43,27 @@ export default function SimulationResults({ result }: Props) {
           </div>
         </div>
 
-        {/* Plain English summary */}
-        {d.plain_english && (
-          <div className="mb-5 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-800 leading-relaxed">
-            {d.plain_english}
-          </div>
-        )}
+        {/* Plain English summary — colour-coded by verdict */}
+        {d.plain_english && (() => {
+          const isHold = (d.verdict ?? "").toUpperCase().includes("HOLD");
+          const isWarn = d.plain_english.toLowerCase().includes("crisis") ||
+                         d.plain_english.toLowerCase().includes("do not invest") ||
+                         d.plain_english.toLowerCase().includes("wait");
+          const cls = isHold || isWarn
+            ? "bg-amber-50 border-amber-200 text-amber-800"
+            : "bg-emerald-50 border-emerald-200 text-emerald-800";
+          return (
+            <div className={`mb-5 border rounded-2xl p-4 text-sm leading-relaxed ${cls}`}>
+              {d.plain_english}
+              {isWarn && d.kelly_adjusted_amount === 0 && (
+                <p className="mt-2 text-xs opacity-75">
+                  Kelly Criterion returned 0 because expected edge is insufficient at these
+                  revenue inputs. Try increasing expected revenue or reducing fixed costs.
+                </p>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Key metrics — using EXACT backend field names */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">

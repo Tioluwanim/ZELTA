@@ -1,9 +1,7 @@
 "use client";
 
 import { Activity } from "lucide-react";
-import {
-  useBehavioralDataContext,
-} from "@/context/BehavioralSnapshotContext";
+import { useBehavioralDataContext } from "@/context/BehavioralSnapshotContext";
 import { DEFAULT_BEHAVIORAL_SNAPSHOT } from "@/hooks/zelta";
 import { LoadingState } from "@/components/ui/State";
 
@@ -13,19 +11,22 @@ export default function Bayse() {
 
   if (loading) return <LoadingState text="Loading Bayse snapshot..." />;
 
-  // bayse_crowd_fear and bayse_zelta_model are 0-1 decimals from backend
-  // Convert to 0-100 for display
-  const crowdFear = Number(data.bayse_crowd_fear ?? 0);
-  const zeltaModel = Number(data.bayse_zelta_model ?? 0);
-  const gapRaw = Number(data.bayse_gap ?? 0);
-  const gap = Math.abs(gapRaw);
+  // FIX: bayse_crowd_fear and bayse_zelta_model are ALREADY 0-100 floats from
+  // behavioral_service.py:  bayse_crowd_fear = round(market_prob * 100, 1)
+  // The previous code multiplied by 100 again → 3770%. No conversion needed.
+  const crowdFear  = Math.min(100, Math.max(0, Number(data.bayse_crowd_fear  ?? 0)));
+  const zeltaModel = Math.min(100, Math.max(0, Number(data.bayse_zelta_model ?? 0)));
+
+  // bayse_gap is ALREADY 0-100 float: round(abs(market_prob - rational_prob)*100, 1)
+  const gap = Math.min(100, Math.max(0, Math.abs(Number(data.bayse_gap ?? 0))));
 
   const comparison =
-    crowdFear > zeltaModel
-      ? "more fearful"
-      : crowdFear < zeltaModel
-        ? "less fearful"
-        : "exactly aligned with";
+    crowdFear > zeltaModel ? "more fearful than"
+    : crowdFear < zeltaModel ? "less fearful than"
+    : "exactly aligned with";
+
+  const fearColor   = crowdFear  >= 60 ? "text-red-500"    : crowdFear  >= 30 ? "text-orange-400" : "text-emerald-500";
+  const modelColor  = zeltaModel >= 60 ? "text-red-500"    : zeltaModel >= 30 ? "text-orange-400" : "text-emerald-500";
 
   return (
     <section className="mt-5 w-full rounded-2xl bg-white p-5 shadow-sm lg:p-6">
@@ -35,27 +36,32 @@ export default function Bayse() {
         </div>
 
         <div className="w-full">
-          <h2 className="text-lg font-bold text-gray-800">
-            Bayse vs ZELTA Model
-          </h2>
+          <h2 className="text-lg font-bold text-gray-800">Bayse vs ZELTA Model</h2>
 
           <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-10">
             <div>
               <p className="text-sm font-light text-gray-500">Bayse Crowd Fear</p>
-              <p className="text-3xl font-bold text-orange-400">{crowdFear.toFixed(1)}%</p>
+              <p className={`text-3xl font-bold ${fearColor}`}>{crowdFear.toFixed(1)}%</p>
+              {/* Bar */}
+              <div className="mt-2 h-2 w-40 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-2 rounded-full bg-orange-400" style={{ width: `${crowdFear}%` }} />
+              </div>
             </div>
 
             <div>
-              <p className="text-sm font-light text-gray-500">
-                ZELTA Relational Model
-              </p>
-              <p className="text-3xl font-bold text-green-500">{zeltaModel.toFixed(1)}%</p>
+              <p className="text-sm font-light text-gray-500">ZELTA Rational Model</p>
+              <p className={`text-3xl font-bold ${modelColor}`}>{zeltaModel.toFixed(1)}%</p>
+              {/* Bar */}
+              <div className="mt-2 h-2 w-40 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${zeltaModel}%` }} />
+              </div>
             </div>
           </div>
 
           <p className="mt-4 text-sm text-gray-500">
-            The Bayse crowd was {gap.toFixed(2)}% {comparison} the data warranted. This is
-            the behavioral panic gap that ZELTA corrects.
+            The Bayse crowd was{" "}
+            <span className="font-semibold text-gray-700">{gap.toFixed(1)}%</span>{" "}
+            {comparison} what the data warranted. This is the behavioral panic gap that ZELTA corrects.
           </p>
         </div>
       </div>
