@@ -128,7 +128,7 @@ export default function StressIndexCard({
       {/* Progress bar — shows the combined stress index */}
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-gray-500">
-          <span>Bayse Primary Signal</span>
+          <span>Market Panic Level</span>
           <span>{stressDisplay}%</span>
         </div>
         <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">

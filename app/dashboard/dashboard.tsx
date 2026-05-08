@@ -58,7 +58,9 @@ function Dashboard() {
   // allocation.verdict is the primary verdict (INVEST / SAVE / HOLD)
   const verdictLabel = intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
 
-  const displayName = profile.data?.name || "there";
+  const displayName = profile.data?.name
+    ? profile.data.name.split(" ")[0]   // first name only — "Babatunde" not "Babatunde Ayodeji Adeagbo"
+    : "there";
 
   return (
     <>

@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { ZeltaProvider } from "@/context/zeltaContext";
 import OnboardingOverlay from "@/components/OnboardingOverlay";
+import FloatingCopilot from "@/components/FloatingCopilot";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -20,8 +21,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Main column */}
           <div className="flex flex-1 flex-col min-w-0">
             <DashboardHeader />
-            {/* pb-20 on mobile = space above fixed bottom nav */}
-            <main className="flex-1 p-4 pb-20 lg:pb-8 lg:p-6">
+            {/* pb-28 on mobile = space above fixed bottom nav + FAB */}
+            <main className="flex-1 p-4 pb-28 lg:pb-8 lg:p-6">
               {children}
             </main>
           </div>
@@ -31,6 +32,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Mobile bottom bar — rendered once by Sidebar (lg:hidden inside it) */}
         <Sidebar />
         <OnboardingOverlay />
+
+        {/* Floating Co-pilot — available on every dashboard page */}
+        <FloatingCopilot />
 
       </div>
     </ZeltaProvider>

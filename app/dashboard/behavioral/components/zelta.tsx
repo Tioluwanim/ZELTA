@@ -1,7 +1,6 @@
 "use client";
 
-import { Brain, MessageSquare } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Brain } from "lucide-react";
 import { useBehavioralDataContext } from "@/context/BehavioralSnapshotContext";
 import { DEFAULT_BEHAVIORAL_SNAPSHOT } from "@/hooks/zelta";
 import { LoadingState } from "@/components/ui/State";
@@ -9,7 +8,6 @@ import { LoadingState } from "@/components/ui/State";
 export default function Zelta() {
   const { snapshot, loading } = useBehavioralDataContext();
   const data = snapshot ?? DEFAULT_BEHAVIORAL_SNAPSHOT;
-  const router = useRouter();
 
   if (loading) return <LoadingState text="Loading ZELTA recommendation..." />;
 
@@ -34,15 +32,6 @@ export default function Zelta() {
         <Tag label="24-Hour Rule" />
         {showBiasTag && <Tag label={`${data.active_bias} Management`} />}
       </div>
-
-      {/* Co-pilot FAB — mobile helper CTA */}
-      <button
-        onClick={() => router.push("/dashboard/co-pilot")}
-        className="fixed bottom-24 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 shadow-lg transition hover:bg-emerald-400 active:scale-95 lg:hidden"
-        title="Confused? Ask ZELTA anything."
-      >
-        <MessageSquare className="h-4 w-4 text-white lg:h-5 lg:w-5" />
-      </button>
     </div>
   );
 }

@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { icon: Home,          label: "Home",       href: "/dashboard" },
   { icon: Wallet,        label: "Wallet",     href: "/dashboard/wallet" },
-  { icon: Brain,         label: "Behavoiral", href: "/dashboard/behavioral" },
+  { icon: Brain,         label: "Behavioral", href: "/dashboard/behavioral" },
   { icon: Sparkles,      label: "Simulation", href: "/dashboard/simulations" },
   { icon: MessageSquare, label: "Co-pilot",   href: "/dashboard/co-pilot" },
   { icon: History,       label: "History",    href: "/dashboard/history" },

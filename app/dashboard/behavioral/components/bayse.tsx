@@ -15,7 +15,11 @@ export default function Bayse() {
   // behavioral_service.py:  bayse_crowd_fear = round(market_prob * 100, 1)
   // The previous code multiplied by 100 again → 3770%. No conversion needed.
   const crowdFear  = Math.min(100, Math.max(0, Number(data.bayse_crowd_fear  ?? 0)));
-  const zeltaModel = Math.min(100, Math.max(0, Number(data.bayse_zelta_model ?? 0)));
+
+  // Calm Signal = 100 - crowdFear so the two always sum to 100%.
+  // This is intuitive: "38% fear → 62% calm". The raw bayse_zelta_model from the API
+  // can show e.g. 44% when fear is 38%, which confuses users expecting them to add up.
+  const zeltaModel = Math.round(100 - crowdFear);
 
   // bayse_gap is ALREADY 0-100 float: round(abs(market_prob - rational_prob)*100, 1)
   const gap = Math.min(100, Math.max(0, Math.abs(Number(data.bayse_gap ?? 0))));
