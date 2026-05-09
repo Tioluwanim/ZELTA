@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { Activity, Sparkles, MessageSquare, PiggyBank, Target } from "lucide-react";
-import { useWallet, useStress, useBayseSignals, useSideHustleSimulation, useSavingsSimulation } from "@/hooks/zelta";
+import { useWallet, useBayseSignals, useSideHustleSimulation, useSavingsSimulation } from "@/hooks/zelta";
+import { useZelta } from "@/context/zeltaContext";
 import SimulationResults from "./components/SimulationResults";
 import type { SideHustleSimRequest, SavingsSimRequest } from "@/types/zelta";
 
@@ -28,7 +29,8 @@ function SimulationsPage() {
   const [inlineError, setInlineError] = useState<string | null>(null);
 
   const { data: walletData, loading: walletLoading } = useWallet();
-  const { data: stressData } = useStress();
+  const { intelligence } = useZelta();
+  const stressData = intelligence.data;
   const { data: bayseData } = useBayseSignals();
   const sideHustleSim = useSideHustleSimulation();
   const savingsSim = useSavingsSimulation();
@@ -36,6 +38,7 @@ function SimulationsPage() {
   const freeCash = walletData?.free_cash ?? 0;
 
   // /api/stress now returns stress_index (not combined_index) per updated StressData type
+  // Use intelligence.data (full brain pipeline) — NOT /api/stress which returns wrong bayse score
   const stressIndex = stressData?.stress_index ?? 0;
 
   // /api/bayse/stress returns crowd_stress (0-100) — NOT raw_crowd_stress

@@ -16,50 +16,46 @@ const greeting =
   hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
 function Dashboard() {
-  const { intelligence, globalError, globalLoading, retryAll, profile, stress, bayse } =
+  const { intelligence, globalError, globalLoading, retryAll, profile, bayse } =
     useZelta();
   const [errorDismissed, setErrorDismissed] = useState(false);
 
   const intel = intelligence.data;
 
-  // ── Stress ──────────────────────────────────────────────────────
-  // /api/stress StressOnlyResponse uses stress_index (0-100)
-  // /api/intelligence also exposes stress_index (mapped from stress.combined_index)
-  const stressIndex = stress.data?.stress_index ?? intel?.stress_index;
-  const stressLevel = stress.data?.level ?? intel?.stress_level;
-  const stressLabel = stress.data?.label ?? intel?.stress_label;
+  // ── Stress values — use /api/intelligence exclusively ────────────
+  // /api/stress calls fetch_stress_signal() which uses the raw Bayse score (22.4)
+  // as combined_index instead of the brain pipeline's combined_index (13).
+  // /api/intelligence runs the full brain pipeline and returns the correct
+  // stress_index=13 and stress_level=CALM.
+  // Always prefer intel.data to avoid the stale/wrong stress signal.
+  const stressIndex = intel?.stress_index;
+  const stressLevel = intel?.stress_level;
+  const stressLabel = intel?.stress_label;
 
-  // ── Bayse Fear % ────────────────────────────────────────────────
-  // /api/bayse/stress returns crowd_stress (0-100) — use this as the primary fear signal.
-  // /api/intelligence crowd_yes = crowd_yes_price (0-1 decimal) → × 100 for fallback.
+  // ── Bayse Fear % ─────────────────────────────────────────────────
+  // /api/bayse/stress returns crowd_stress (0-100) — most accurate fear signal.
+  // /api/intelligence crowd_yes = crowd_yes_price (0-1 decimal) → ×100 fallback.
   const bayseFearPct: number = (() => {
     const cs = bayse.data?.stress?.crowd_stress;
-    if (cs != null && Number.isFinite(cs)) return Math.round(cs);       // already 0-100
+    if (cs != null && Number.isFinite(cs)) return Math.round(cs);
     const cy = intel?.crowd_yes;
-    if (cy != null && Number.isFinite(cy)) return Math.round(cy * 100); // 0-1 → %
+    if (cy != null && Number.isFinite(cy)) return Math.round(cy * 100);
     return 0;
   })();
 
-  // ── StressIndexCard MiniStats ────────────────────────────────────
-  // "Bayse Crowd" = crowd fear (what the crowd is pricing in)
-  // "Zelta Model" = 100 - crowd fear (what the rational model says — the complement)
-  // Do NOT use bayse_primary / market_probability — those are internal AI weighting
-  // decimals (0-1) that are often 0.0 or 0.5 defaults and mean nothing to the user.
-  const crowdStatPct  = bayseFearPct;               // 0-100 already
-  const modelStatPct  = Math.max(0, 100 - bayseFearPct); // rational complement
+  // Crowd fear and its rational complement — both 0-100
+  const crowdStatPct = bayseFearPct;
+  const modelStatPct = Math.max(0, 100 - bayseFearPct);
 
-  // ── Market title ────────────────────────────────────────────────
   const marketTitle =
     intel?.bayse_market ??
     bayse.data?.stress?.market_title ??
     "Bayse Market";
 
-  // ── Verdict ──────────────────────────────────────────────────────
-  // allocation.verdict is the primary verdict (INVEST / SAVE / HOLD)
   const verdictLabel = intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
 
   const displayName = profile.data?.name
-    ? profile.data.name.split(" ")[0]   // first name only — "Babatunde" not "Babatunde Ayodeji Adeagbo"
+    ? profile.data.name.split(" ")[0]
     : "there";
 
   return (
@@ -85,7 +81,7 @@ function Dashboard() {
         />
 
         <main className="pb-8 space-y-3">
-          {/* Weekly allocation verdict - primary daily action */}
+          {/* Weekly verdict — primary daily action */}
           <WeeklyVerdictCard
             verdict={verdictLabel}
             invest_ngn={intel?.invest_ngn ?? 0}
@@ -95,6 +91,7 @@ function Dashboard() {
             loading={intelligence.loading && !intel}
           />
 
+          {/* Ask ZELTA CTA */}
           <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
             <p className="text-sm font-semibold text-emerald-700">
               Confused? Ask ZELTA anything.
@@ -110,12 +107,12 @@ function Dashboard() {
                 Open Co-pilot
               </Link>
               <span className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-700">
-                Try: "Should I save or invest this week?"
+                Try: &quot;Should I save or invest this week?&quot;
               </span>
             </div>
           </div>
 
-          {/* Bayse market fear — crowd_stress is already 0-100 */}
+          {/* Market fear — uses crowd_stress from /api/bayse/stress (correct 0-100) */}
           <MarketAlert
             crowd_yes_pct={bayseFearPct}
             bayse_market={marketTitle}
@@ -123,7 +120,7 @@ function Dashboard() {
             error={null}
           />
 
-          {/* Stress index — bayse_crowd_pct and zelta_model_pct are both 0-100 */}
+          {/* Stress index — sourced exclusively from /api/intelligence (correct values) */}
           <StressIndexCard
             stress_index={stressIndex}
             stress_level={stressLevel}
@@ -133,20 +130,19 @@ function Dashboard() {
             loading={globalLoading && !intel}
             error={null}
           />
+
+          {/* Advanced details — collapsed by default */}
           <details className="rounded-xl border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer text-sm font-semibold text-gray-700">
               See details
             </summary>
             <div className="mt-3 space-y-3">
-              {/* Active cognitive bias */}
               <BiasAlertCard
                 active_bias={intel?.active_bias}
                 bias_explanation={intel?.bias_explanation}
                 loading={intelligence.loading && !intel}
                 error={null}
               />
-
-              {/* rational_pct, behavioral_pct, confidence_gap are all 0-100 floats */}
               <DecisionScoreCard
                 confidence_gap={intel?.confidence_gap}
                 bias_confidence={intel?.bias_confidence}

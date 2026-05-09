@@ -43,24 +43,25 @@ export default function SimulationResults({ result }: Props) {
           </div>
         </div>
 
-        {/* Plain English summary — colour-coded by verdict */}
+        {/* Plain English summary — smart colour coding */}
         {d.plain_english && (() => {
-          const isHold = (d.verdict ?? "").toUpperCase().includes("HOLD");
-          const isWarn = d.plain_english.toLowerCase().includes("crisis") ||
-                         d.plain_english.toLowerCase().includes("do not invest") ||
-                         d.plain_english.toLowerCase().includes("wait");
-          const cls = isHold || isWarn
+          // Backend sends "CRISIS stress (X/100). Do not invest now." when kelly=0,
+          // regardless of whether stress is actually high. When stress is low (e.g. 13/100)
+          // and kelly=0 is purely due to insufficient edge, replace with a clear explanation.
+          const isHold = (d.verdict ?? "").toUpperCase() === "HOLD";
+          const kellyIsZero = (d.kelly_adjusted_amount ?? 1) === 0;
+          const hasCrisisText = d.plain_english.toLowerCase().includes("crisis");
+          // Low-edge case: backend said CRISIS but it's actually just a weak opportunity
+          const isLowEdgeCase = hasCrisisText && kellyIsZero;
+          const displayText = isLowEdgeCase
+            ? "The numbers don't show enough profit edge for this idea right now. Safe allocation = ₦0. Try higher expected revenue or lower fixed costs and run again."
+            : d.plain_english;
+          const cls = isHold || hasCrisisText
             ? "bg-amber-50 border-amber-200 text-amber-800"
             : "bg-emerald-50 border-emerald-200 text-emerald-800";
           return (
             <div className={`mb-5 border rounded-2xl p-4 text-sm leading-relaxed ${cls}`}>
-              {d.plain_english}
-              {isWarn && d.kelly_adjusted_amount === 0 && (
-                <p className="mt-2 text-xs opacity-75">
-                  Safe allocation returned 0 because expected edge is insufficient at these
-                  revenue inputs. Try increasing expected revenue or reducing fixed costs.
-                </p>
-              )}
+              {displayText}
             </div>
           );
         })()}

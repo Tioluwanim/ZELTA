@@ -14,7 +14,8 @@ import {
   ChevronDown,
   Info,
 } from "lucide-react";
-import { useWallet, useCopilot, useStress, useBayseSignals } from "@/hooks/zelta";
+import { useWallet, useCopilot, useBayseSignals } from "@/hooks/zelta";
+import { useZelta } from "@/context/zeltaContext";
 import type { CopilotMessage, CopilotResponse } from "@/types/zelta";
 
 // ─── Suggested prompts ────────────────────────────────────────────
@@ -266,7 +267,8 @@ function ScrollToBottomBtn({ onClick }: { onClick: () => void }) {
 
 export default function CopilotPage() {
   const wallet = useWallet();
-  const stress = useStress();
+  const { intelligence } = useZelta();
+  const stress = { data: intelligence.data, loading: intelligence.loading };
   const bayse = useBayseSignals();
   const copilot = useCopilot();
 
