@@ -9,32 +9,26 @@ import MarketAlert from "@/app/dashboard/MarketAlert";
 import WeeklyVerdictCard from "@/app/dashboard/WeeklyVerdictCard";
 import DecisionScoreCard from "./DecisionScoreCard";
 import StressIndexCard from "./StressIndexCard";
+import SurvivalBanner from "@/components/SurvivalBanner";
 import { useZelta } from "@/context/zeltaContext";
+import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import Link2 from "next/link";
 
 const hour = new Date().getHours();
 const greeting =
   hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
 function Dashboard() {
-  const { intelligence, globalError, globalLoading, retryAll, profile, bayse } =
-    useZelta();
+  const { intelligence, globalError, globalLoading, retryAll, profile, bayse } = useZelta();
   const [errorDismissed, setErrorDismissed] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const intel = intelligence.data;
 
-  // ── Stress values — use /api/intelligence exclusively ────────────
-  // /api/stress calls fetch_stress_signal() which uses the raw Bayse score (22.4)
-  // as combined_index instead of the brain pipeline's combined_index (13).
-  // /api/intelligence runs the full brain pipeline and returns the correct
-  // stress_index=13 and stress_level=CALM.
-  // Always prefer intel.data to avoid the stale/wrong stress signal.
   const stressIndex = intel?.stress_index;
   const stressLevel = intel?.stress_level;
   const stressLabel = intel?.stress_label;
 
-  // ── Bayse Fear % ─────────────────────────────────────────────────
-  // /api/bayse/stress returns crowd_stress (0-100) — most accurate fear signal.
-  // /api/intelligence crowd_yes = crowd_yes_price (0-1 decimal) → ×100 fallback.
   const bayseFearPct: number = (() => {
     const cs = bayse.data?.stress?.crowd_stress;
     if (cs != null && Number.isFinite(cs)) return Math.round(cs);
@@ -43,16 +37,32 @@ function Dashboard() {
     return 0;
   })();
 
-  // Crowd fear and its rational complement — both 0-100
   const crowdStatPct = bayseFearPct;
   const modelStatPct = Math.max(0, 100 - bayseFearPct);
+  const marketTitle = intel?.bayse_market ?? bayse.data?.stress?.market_title ?? "Bayse Market";
+  const verdictLabel = intel?.student_verdict ?? intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
 
-  const marketTitle =
-    intel?.bayse_market ??
-    bayse.data?.stress?.market_title ??
-    "Bayse Market";
+  // student_model — survival intelligence from AI pipeline
+  const studentModel = (intelligence.data as any)?.student_model as {
+    agent_mode?: "EMERGENCY" | "SURVIVAL" | "NORMAL";
+    survival_score?: number;
+    weeks_of_runway?: number;
+    fee_gap_ngn?: number;
+    fee_amount_due?: number;
+    status_message?: string;
+    safe_discretionary_ngn?: number;
+  } | undefined;
 
-  const verdictLabel = intel?.verdict ?? intel?.decision_verdict ?? "HOLD";
+  const agentMode         = studentModel?.agent_mode;
+  const survivalScore     = studentModel?.survival_score;
+  const weeksOfRunway     = studentModel?.weeks_of_runway;
+  const feeGapNgn         = studentModel?.fee_gap_ngn;
+  const statusMessage     = studentModel?.status_message;
+  const safeDiscretionary = studentModel?.safe_discretionary_ngn;
+
+  // brain tool outputs
+  const hustleRecs     = (intelligence.data as any)?.hustle_recommendations as string | undefined;
+  const purchaseSafety = (intelligence.data as any)?.purchase_safety_check as string | undefined;
 
   const displayName = profile.data?.name
     ? profile.data.name.split(" ")[0]
@@ -69,74 +79,119 @@ function Dashboard() {
         />
       )}
 
-      <DashboardOverlay
-        show={globalLoading && !intel}
-        message="Loading your intelligence..."
-      />
+      <DashboardOverlay show={globalLoading && !intel} message="Loading your intelligence..." />
 
-      <section className="space-y-6">
+      <section className="space-y-4 pb-8">
+        {/* ── Header ── */}
         <PageHeader
           title={`${greeting}, ${displayName}`}
           description="here's your financial intelligence for today"
         />
 
-        <main className="pb-8 space-y-3">
-          {/* Weekly verdict — primary daily action */}
-          <WeeklyVerdictCard
-            verdict={verdictLabel}
-            invest_ngn={intel?.invest_ngn ?? 0}
-            save_ngn={intel?.save_ngn ?? 0}
-            hold_ngn={intel?.hold_ngn ?? 0}
-            allocation_plain={intel?.allocation_plain ?? ""}
-            loading={intelligence.loading && !intel}
+        {/* ── Survival / Emergency Banner ── */}
+        {(agentMode === "EMERGENCY" || agentMode === "SURVIVAL") && (
+          <SurvivalBanner
+            agent_mode={agentMode}
+            weeks_of_runway={weeksOfRunway}
+            fee_gap_ngn={feeGapNgn}
+            status_message={statusMessage}
+            safe_discretionary_ngn={safeDiscretionary}
+            hustle_recommendations={hustleRecs}
+            purchase_safety_check={purchaseSafety}
           />
+        )}
 
-          {/* Ask ZELTA CTA */}
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-            <p className="text-sm font-semibold text-emerald-700">
-              Confused? Ask ZELTA anything.
-            </p>
-            <p className="mt-1 text-xs text-emerald-700/80">
-              Use Co-pilot for simple next steps if you are unsure what to do today.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/dashboard/co-pilot"
-                className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600"
-              >
-                Open Co-pilot
-              </Link>
-              <span className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-700">
-                Try: &quot;Should I save or invest this week?&quot;
-              </span>
-            </div>
+        {/* ── Weekly verdict ── */}
+        <WeeklyVerdictCard
+          verdict={verdictLabel}
+          student_verdict={intel?.student_verdict}
+          invest_ngn={intel?.invest_ngn ?? 0}
+          save_ngn={intel?.save_ngn ?? 0}
+          hold_ngn={intel?.hold_ngn ?? 0}
+          spend_safely_ngn={(intel as any)?.spend_safely_ngn}
+          protect_ngn={(intel as any)?.protect_ngn}
+          allocation_plain={intel?.allocation_plain ?? ""}
+          agent_mode={agentMode}
+          survival_score={survivalScore}
+          weeks_of_runway={weeksOfRunway}
+          fee_gap_ngn={feeGapNgn}
+          status_message={statusMessage}
+          safe_discretionary_ngn={safeDiscretionary}
+          loading={intelligence.loading && !intel}
+        />
+
+        {/* ── Quick nav pills ── */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { href: "/dashboard/wallet",      icon: Wallet,    label: "My Money",  color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+            { href: "/dashboard/behavioral",  icon: Brain,     label: "My Mindset",color: "bg-violet-50 text-violet-700 border-violet-200" },
+            { href: "/dashboard/simulations", icon: TrendingUp,label: "What If?",  color: "bg-orange-50 text-orange-700 border-orange-200" },
+          ].map(({ href, icon: Icon, label, color }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-semibold transition hover:scale-[1.02] ${color}`}
+            >
+              <Icon className="h-5 w-5" />
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        {/* ── Ask ZELTA CTA ── */}
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <MessageSquare className="h-4 w-4 text-emerald-600" />
+            <p className="text-sm font-semibold text-emerald-700">Confused? Ask ZELTA anything.</p>
           </div>
+          <p className="text-xs text-emerald-600/80 mb-3">
+            Tap the green chat button below — or open the full co-pilot.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/co-pilot"
+              className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition"
+            >
+              Open Co-pilot
+            </Link>
+            <span className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-700">
+              Try: &quot;Will my money last till month end?&quot;
+            </span>
+          </div>
+        </div>
 
-          {/* Market fear — uses crowd_stress from /api/bayse/stress (correct 0-100) */}
-          <MarketAlert
-            crowd_yes_pct={bayseFearPct}
-            bayse_market={marketTitle}
-            loading={globalLoading && !intel}
-            error={null}
-          />
+        {/* ── Market signal ── */}
+        <MarketAlert
+          crowd_yes_pct={bayseFearPct}
+          bayse_market={marketTitle}
+          loading={globalLoading && !intel}
+          error={null}
+        />
 
-          {/* Stress index — sourced exclusively from /api/intelligence (correct values) */}
-          <StressIndexCard
-            stress_index={stressIndex}
-            stress_level={stressLevel}
-            stress_label={stressLabel}
-            bayse_primary_pct={crowdStatPct}
-            market_probability_pct={modelStatPct}
-            loading={globalLoading && !intel}
-            error={null}
-          />
+        {/* ── Market Panic Level ── */}
+        <StressIndexCard
+          stress_index={stressIndex}
+          stress_level={stressLevel}
+          stress_label={stressLabel}
+          bayse_primary_pct={crowdStatPct}
+          market_probability_pct={modelStatPct}
+          loading={globalLoading && !intel}
+          error={null}
+        />
 
-          {/* Advanced details — collapsed by default */}
-          <details className="rounded-xl border border-gray-200 bg-white p-4">
-            <summary className="cursor-pointer text-sm font-semibold text-gray-700">
-              See details
-            </summary>
-            <div className="mt-3 space-y-3">
+        {/* ── Bias + Decision — collapsible ── */}
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+          <button
+            onClick={() => setDetailsOpen(v => !v)}
+            className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+          >
+            <span>Your Behavioral Details</span>
+            {detailsOpen
+              ? <ChevronUp className="h-4 w-4 text-gray-400" />
+              : <ChevronDown className="h-4 w-4 text-gray-400" />}
+          </button>
+          {detailsOpen && (
+            <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
               <BiasAlertCard
                 active_bias={intel?.active_bias}
                 bias_explanation={intel?.bias_explanation}
@@ -152,8 +207,8 @@ function Dashboard() {
                 error={null}
               />
             </div>
-          </details>
-        </main>
+          )}
+        </div>
       </section>
     </>
   );

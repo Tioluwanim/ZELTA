@@ -8,6 +8,8 @@ import { useZelta } from "@/context/zeltaContext";
 import SimulationResults from "./components/SimulationResults";
 import type { SideHustleSimRequest, SavingsSimRequest } from "@/types/zelta";
 
+import SurvivalBanner from "@/components/SurvivalBanner";
+
 function SimulationsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"side-hustle" | "savings">("side-hustle");
@@ -35,16 +37,19 @@ function SimulationsPage() {
   const sideHustleSim = useSideHustleSimulation();
   const savingsSim = useSavingsSimulation();
 
-  const freeCash = walletData?.free_cash ?? 0;
-
-  // /api/stress now returns stress_index (not combined_index) per updated StressData type
-  // Use intelligence.data (full brain pipeline) — NOT /api/stress which returns wrong bayse score
+  const freeCash    = walletData?.free_cash ?? 0;
   const stressIndex = stressData?.stress_index ?? 0;
-
-  // /api/bayse/stress returns crowd_stress (0-100) — NOT raw_crowd_stress
   const rawCrowdStress = bayseData?.stress?.crowd_stress;
   const bayseFear  = Number.isFinite(rawCrowdStress) ? Math.round(rawCrowdStress!) : 0;
   const zeltaModel = Number.isFinite(rawCrowdStress) ? Math.round(100 - rawCrowdStress!) : 0;
+
+  // student_model from intelligence — surfaces survival context on simulations page
+  const studentModel = (intelligence.data as any)?.student_model as {
+    agent_mode?: string; weeks_of_runway?: number; fee_gap_ngn?: number;
+    status_message?: string; safe_discretionary_ngn?: number;
+  } | undefined;
+  const hustleRecs     = (intelligence.data as any)?.hustle_recommendations as string | undefined;
+  const purchaseSafety = (intelligence.data as any)?.purchase_safety_check as string | undefined;
 
   const handleSideHustleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +77,24 @@ function SimulationsPage() {
   return (
     <div className="px-3 lg:px-0">
       <PageHeader
-        title="Simulation"
+        title="What If?"
         description="Try your idea first, then decide with confidence"
       />
+
+      {/* Survival banner from AI pipeline */}
+      {(studentModel?.agent_mode === "EMERGENCY" || studentModel?.agent_mode === "SURVIVAL") && (
+        <div className="mt-3">
+          <SurvivalBanner
+            agent_mode={studentModel.agent_mode}
+            weeks_of_runway={studentModel.weeks_of_runway}
+            fee_gap_ngn={studentModel.fee_gap_ngn}
+            status_message={studentModel.status_message}
+            safe_discretionary_ngn={studentModel.safe_discretionary_ngn}
+            hustle_recommendations={hustleRecs}
+            purchase_safety_check={purchaseSafety}
+          />
+        </div>
+      )}
 
       {/* Current Financial State */}
       <div className="bg-white border-2 border-gray-100 mt-3 w-full rounded-2xl p-4">

@@ -96,16 +96,43 @@ export interface BrainData {
   };
   allocation: {
     verdict: Verdict;
+    student_verdict: "SPEND_SAFELY" | "PROTECT" | "HOLD" | string; // student-friendly alias
     invest_ngn: number;
     save_ngn: number;
     hold_ngn: number;
+    spend_safely_ngn: number;   // student alias for invest_ngn
+    protect_ngn: number;        // student alias for save_ngn
+    buffer_ngn: number;         // student alias for hold_ngn
     allocation_pct: number;
     allocator_notes: string;
     plain_english: string;
-    invest_amount: number;          // computed alias
-    save_amount: number;            // computed alias
-    hold_amount: number;            // computed alias
+    invest_amount: number;      // computed alias
+    save_amount: number;        // computed alias
+    hold_amount: number;        // computed alias
   };
+  // student_model — survival intelligence from ZeltaStudentModel
+  student_model: {
+    agent_mode: "EMERGENCY" | "SURVIVAL" | "NORMAL";
+    survival_score: number;       // 0-100
+    free_cash: number;
+    weeks_of_runway: number;
+    weeks_to_fee_deadline: number;
+    fee_amount_due: number;
+    fee_gap_ngn: number;
+    weekly_burn_rate: number;
+    safe_discretionary_ngn: number;
+    survival_mode: boolean;
+    emergency_mode: boolean;
+    status_message: string;
+    behavioral: {
+      stress_level: "CRITICAL" | "HIGH" | "STABLE";
+      primary_directive: string;
+    };
+    risk_tolerance: string;
+  } | null;
+  // Tool outputs from agent loop
+  hustle_recommendations: string | null;
+  purchase_safety_check: string | null;
   score: {
     score: number;
     decision_score: number;
@@ -161,11 +188,15 @@ export interface IntelligenceData {
   is_actionable: boolean;
   intervention_urgency: Urgency;
   confidence_plain: string;
-  // Allocation
+  // Allocation — student-friendly aliases now included
   verdict: Verdict;                 // allocation.verdict (primary verdict for UI)
+  student_verdict: string;          // SPEND_SAFELY | PROTECT | HOLD
   invest_ngn: number;
   save_ngn: number;
   hold_ngn: number;
+  spend_safely_ngn: number;         // student alias
+  protect_ngn: number;              // student alias
+  buffer_ngn: number;               // student alias
   allocation_pct: number;
   allocation_plain: string;         // allocation.plain_english
   // Score

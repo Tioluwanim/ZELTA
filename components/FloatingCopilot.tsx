@@ -21,12 +21,12 @@ import {
 import { useCopilot, useWallet, useStress, useBayseSignals } from "@/hooks/zelta";
 import type { CopilotMessage, CopilotResponse } from "@/types/zelta";
 
-// ─── Suggested quick prompts ──────────────────────────────────────
+// ─── Suggested quick prompts — student survival focused ──────────
 const QUICK_PROMPTS = [
-  "What should I do with my money this week?",
-  "Am I spending too much right now?",
-  "Is now a good time to invest?",
-  "How much should I save this month?",
+  "Will my money last till end of month?",
+  "I have low cash — what should I cut first?",
+  "My parents just sent money — what do I do first?",
+  "Can I afford to go out this weekend?",
 ];
 
 // ─── Markdown-lite inline renderer ───────────────────────────────
@@ -268,9 +268,16 @@ export default function FloatingCopilot() {
         question: trimmed,
         conversation_history: next,
         context: {
-          free_cash: wallet.data?.free_cash ?? 0,
+          // Live wallet signals
+          free_cash:    wallet.data?.free_cash ?? 0,
           stress_index: stress.data?.stress_index ?? 0,
-          bayse_fear: bayse.data?.stress?.crowd_stress ?? 0,
+          bayse_fear:   bayse.data?.stress?.crowd_stress ?? 0,
+          weekly_burn_rate: wallet.data?.weekly_burn_rate ?? 0,
+          // student_model survival signals — passed so Gemini uses the correct framing
+          agent_mode:            (wallet.data as unknown as { student_model?: { agent_mode?: string } })?.student_model?.agent_mode ?? "NORMAL",
+          weeks_of_runway:       (wallet.data as unknown as { student_model?: { weeks_of_runway?: number } })?.student_model?.weeks_of_runway,
+          safe_discretionary_ngn:(wallet.data as unknown as { student_model?: { safe_discretionary_ngn?: number } })?.student_model?.safe_discretionary_ngn,
+          upcoming_obligations:  (wallet.data as unknown as { student_model?: { fee_amount_due?: number } })?.student_model?.fee_amount_due ?? 0,
         },
       });
 

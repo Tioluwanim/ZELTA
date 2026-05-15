@@ -157,12 +157,27 @@ export default function SimulationResults({ result }: Props) {
 
         {/* Verdict */}
         {d.verdict && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+          <div className={`rounded-2xl border p-4 ${
+            d.verdict === "INVEST" || d.verdict === "SPEND_SAFELY" ? "bg-emerald-50 border-emerald-200"
+            : d.verdict === "HOLD" ? "bg-gray-100 border-gray-200"
+            : "bg-amber-50 border-amber-200"
+          }`}>
             <div className="flex items-start gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+              <CheckCircle className={`w-5 h-5 mt-0.5 shrink-0 ${
+                d.verdict === "INVEST" || d.verdict === "SPEND_SAFELY" ? "text-emerald-500"
+                : d.verdict === "HOLD" ? "text-gray-400" : "text-amber-500"
+              }`} />
               <div>
                 <h3 className="text-gray-800 font-bold text-sm">ZELTA Verdict</h3>
-                <p className="text-gray-700 text-sm mt-1">{d.verdict}</p>
+                <p className="text-gray-700 text-sm mt-1">
+                  {d.verdict === "INVEST" || d.verdict === "SPEND_SAFELY"
+                    ? "✅ Go for it — conditions support this hustle"
+                    : d.verdict === "HOLD"
+                      ? "⏸ Hold — now is not the right time to start"
+                      : d.verdict === "SAVE" || d.verdict === "PROTECT"
+                        ? "🛡 Protect your money first before investing in this"
+                        : d.verdict}
+                </p>
               </div>
             </div>
           </div>
@@ -280,14 +295,20 @@ export default function SimulationResults({ result }: Props) {
 
         {/* Verdict */}
         {d.verdict && (
-          <div
-            className={`bg-${verdictColor}-50 border border-${verdictColor}-200 rounded-2xl p-4`}
-          >
+          <div className={`bg-${verdictColor}-50 border border-${verdictColor}-200 rounded-2xl p-4`}>
             <div className="flex items-start gap-2">
               <CheckCircle className={`w-5 h-5 text-${verdictColor}-500 mt-0.5 shrink-0`} />
               <div>
                 <h3 className="text-gray-800 font-bold text-sm">Savings Verdict</h3>
-                <p className="text-gray-700 text-sm mt-1">{d.verdict}</p>
+                <p className="text-gray-700 text-sm mt-1">
+                  {d.verdict === "ON_TRACK"
+                    ? "✅ You're on track — keep saving at this rate"
+                    : d.verdict === "SAVE_MORE"
+                      ? "📈 Save a bit more each week to hit your target"
+                      : d.verdict === "REVIEW"
+                        ? "🔍 Review your target or timeline — it may need adjusting"
+                        : d.verdict}
+                </p>
               </div>
             </div>
           </div>

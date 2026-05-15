@@ -1,95 +1,120 @@
 "use client";
 
 import React from "react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ShieldCheck, Banknote, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Verdict } from "@/types/zelta";
 
 interface VerdictProp {
   verdict?: Verdict | string;
+  student_verdict?: string;         // SPEND_SAFELY | PROTECT | HOLD — from new backend
   invest_ngn: number;
   save_ngn: number;
   hold_ngn: number;
+  spend_safely_ngn?: number;        // student alias
+  protect_ngn?: number;             // student alias
   allocation_plain: string;
   loading?: boolean;
+  // student_model survival signals
+  agent_mode?: "EMERGENCY" | "SURVIVAL" | "NORMAL" | string;
+  survival_score?: number;
+  weeks_of_runway?: number;
+  fee_gap_ngn?: number;
+  status_message?: string;
+  safe_discretionary_ngn?: number;
 }
 
-type VerdictKey = "INVEST" | "SAVE" | "HOLD";
+type VerdictKey = "INVEST" | "SAVE" | "HOLD" | "SPEND_SAFELY" | "PROTECT";
 
-const CONFIG: Record<
-  VerdictKey,
-  {
-    gradient: string;
-    label: string;
-    icon: React.ElementType;
-    primaryField: "invest_ngn" | "save_ngn" | "hold_ngn";
-  }
-> = {
+const CONFIG: Record<VerdictKey, {
+  gradient: string;
+  label: string;
+  sublabel: string;
+  icon: React.ElementType;
+  primaryField: "invest_ngn" | "save_ngn" | "hold_ngn";
+}> = {
   INVEST: {
-    gradient: "from-emerald-500 to-emerald-700",
-    label: "Invest",
-    icon: TrendingUp,
-    primaryField: "invest_ngn",
+    gradient:    "from-emerald-500 to-emerald-700",
+    label:       "Spend Safely",
+    sublabel:    "Safe discretionary amount this week",
+    icon:        Banknote,
+    primaryField:"invest_ngn",
+  },
+  SPEND_SAFELY: {
+    gradient:    "from-emerald-500 to-emerald-700",
+    label:       "Spend Safely",
+    sublabel:    "Safe discretionary amount this week",
+    icon:        Banknote,
+    primaryField:"invest_ngn",
   },
   SAVE: {
-    gradient: "from-blue-500 to-blue-700",
-    label: "Save",
-    icon: TrendingDown,
-    primaryField: "save_ngn",
+    gradient:    "from-blue-500 to-blue-700",
+    label:       "Protect This",
+    sublabel:    "Set this aside — don't spend it",
+    icon:        ShieldCheck,
+    primaryField:"save_ngn",
+  },
+  PROTECT: {
+    gradient:    "from-blue-500 to-blue-700",
+    label:       "Protect This",
+    sublabel:    "Set this aside — don't spend it",
+    icon:        ShieldCheck,
+    primaryField:"save_ngn",
   },
   HOLD: {
-    gradient: "from-slate-500 to-slate-700",
-    label: "Hold",
-    icon: Minus,
-    primaryField: "hold_ngn",
+    gradient:    "from-slate-500 to-slate-700",
+    label:       "Hold",
+    sublabel:    "Don't make any big money moves now",
+    icon:        Minus,
+    primaryField:"hold_ngn",
   },
 };
 
 export default function WeeklyVerdictCard({
   verdict = "HOLD",
+  student_verdict,
   invest_ngn,
   save_ngn,
   hold_ngn,
+  spend_safely_ngn,
+  protect_ngn,
   allocation_plain,
   loading = false,
+  agent_mode,
+  survival_score,
+  weeks_of_runway,
+  fee_gap_ngn,
+  status_message,
+  safe_discretionary_ngn,
 }: VerdictProp) {
   const navigate = useRouter();
 
-  const key = ((verdict ?? "HOLD") as string).toUpperCase() as VerdictKey;
-  const cfg = CONFIG[key] ?? CONFIG.HOLD;
+  // Prefer student_verdict (new pipeline) over raw verdict
+  const effectiveVerdict = (student_verdict || verdict || "HOLD").toUpperCase() as VerdictKey;
+  const cfg = CONFIG[effectiveVerdict] ?? CONFIG.HOLD;
   const Icon = cfg.icon;
 
-  const amounts = { invest_ngn, save_ngn, hold_ngn };
-  const primaryAmount = amounts[cfg.primaryField] ?? 0;
+  // Use student-friendly aliases when available
+  const primaryAmount = effectiveVerdict === "INVEST" || effectiveVerdict === "SPEND_SAFELY"
+    ? (spend_safely_ngn ?? invest_ngn)
+    : effectiveVerdict === "SAVE" || effectiveVerdict === "PROTECT"
+      ? (protect_ngn ?? save_ngn)
+      : hold_ngn;
 
-  // Secondary stats: exclude the primary field, and hide any that are zero
-  const secondaryStats = (
-    [
-      { title: "Invest",    value: invest_ngn, key: "invest_ngn" },
-      { title: "Save",      value: save_ngn,   key: "save_ngn"   },
-      { title: "Hold Cash", value: hold_ngn,   key: "hold_ngn"   },
-    ] as { title: string; value: number; key: string }[]
-  ).filter((s) => s.key !== cfg.primaryField && s.value > 0);
+  const formattedAmount = (primaryAmount ?? 0).toLocaleString();
 
-  // FIX 1: Compare allocation_plain using the locale-formatted amount string,
-  // not the raw number. e.g. primaryAmount=56500 → "56,500", so we check
-  // against "Hold ₦56,500" not "Hold ₦56500" — the raw number would always fail.
-  const formattedAmount = primaryAmount.toLocaleString();
+  const isEmergency = agent_mode === "EMERGENCY";
+  const isSurvival  = agent_mode === "SURVIVAL";
+  const hasRunway   = weeks_of_runway != null && weeks_of_runway < 4;
+
   const plainIsRedundant =
     !!allocation_plain &&
     allocation_plain.startsWith(`${cfg.label} ₦${formattedAmount}`);
 
   /* ── Loading skeleton ── */
-  if (
-    loading &&
-    invest_ngn === 0 &&
-    save_ngn === 0 &&
-    hold_ngn === 0
-  ) {
+  if (loading && !invest_ngn && !save_ngn && !hold_ngn) {
     return (
-      <div
-        className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-4 animate-pulse`}
-      >
+      <div className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-4 animate-pulse`}>
         <div className="flex gap-3 items-center">
           <div className="h-5 w-5 bg-white/30 rounded" />
           <div className="space-y-1">
@@ -99,74 +124,84 @@ export default function WeeklyVerdictCard({
         </div>
         <div className="h-12 bg-white/20 rounded w-48" />
         <div className="h-4 bg-white/20 rounded w-full" />
-        <div className="flex gap-3">
-          <div className="flex-1 h-16 bg-white/20 rounded-lg" />
-          <div className="flex-1 h-16 bg-white/20 rounded-lg" />
-        </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-5`}
-    >
+    <div className={`bg-gradient-to-br ${cfg.gradient} text-white p-6 rounded-xl space-y-5`}>
+
+      {/* Emergency / Survival alert banner */}
+      {(isEmergency || isSurvival) && (
+        <div className="flex items-start gap-2 rounded-xl bg-white/20 border border-white/30 px-3 py-2.5">
+          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+          <p className="text-xs font-semibold leading-relaxed">
+            {isEmergency
+              ? `⚠️ Money runs out in ${weeks_of_runway?.toFixed(1)} weeks. Cut all non-essential spending now.`
+              : `Fee shortfall: ₦${(fee_gap_ngn ?? 0).toLocaleString()}. Prioritise saving for upcoming obligations.`}
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex gap-3 items-start">
         <Icon className="h-5 w-5 mt-0.5 shrink-0" />
         <div>
-          <h2 className="font-bold uppercase tracking-wide text-sm">
-            Weekly Recommendation
-          </h2>
-          <p className="text-xs opacity-80">
-            Your practical next step for this week
-          </p>
+          <h2 className="font-bold uppercase tracking-wide text-sm">Weekly Recommendation</h2>
+          <p className="text-xs opacity-80">Your practical next step for this week</p>
         </div>
+
+        {/* Survival score pill */}
+        {survival_score != null && (
+          <div className="ml-auto shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold">
+            Score {survival_score}/100
+          </div>
+        )}
       </div>
 
       {/* Primary recommendation */}
       <div>
-        <p className="text-xs uppercase opacity-70 tracking-widest">
-          Do this today
-        </p>
+        <p className="text-xs uppercase opacity-70 tracking-widest">Do this today</p>
         <h3 className="text-3xl lg:text-5xl font-bold mt-1">
           {cfg.label} ₦{formattedAmount}
         </h3>
+        <p className="text-xs opacity-70 mt-1">{cfg.sublabel}</p>
 
-        {/* Show allocation_plain only when it adds new information */}
-        {allocation_plain && !plainIsRedundant && (
-          <p className="text-sm mt-2 opacity-90 leading-relaxed">
-            {allocation_plain}
-          </p>
+        {/* ZELTA status message from student_model — always show when available */}
+        {status_message && !isEmergency && !isSurvival && (
+          <p className="text-sm mt-2 opacity-90 leading-relaxed">{status_message}</p>
         )}
 
-        {/* Fallback message for a pure HOLD with no allocation text */}
-        {key === "HOLD" && !allocation_plain && (
+        {/* allocation_plain only when it adds new info */}
+        {allocation_plain && !plainIsRedundant && !status_message && (
+          <p className="text-sm mt-2 opacity-90 leading-relaxed">{allocation_plain}</p>
+        )}
+
+        {/* Fallback for pure HOLD */}
+        {effectiveVerdict === "HOLD" && !allocation_plain && !status_message && (
           <p className="text-sm mt-2 opacity-80">
-            Hold your money for now. Market emotion is elevated, so wait for a calmer signal before committing cash.
+            Hold your money for now. Conditions aren't right to act — wait for a calmer signal.
           </p>
         )}
       </div>
 
-      {/* Secondary stats — only rendered when non-zero */}
-      {secondaryStats.length > 0 ? (
-        <div className="flex gap-3">
-          {secondaryStats.map((s) => (
-            <Stat
-              key={s.key}
-              title={s.title}
-              value={`₦${s.value.toLocaleString()}`}
-              subtitle={s.key === "save_ngn" ? "Safety buffer" : "Optional allocation"}
-            />
-          ))}
+      {/* Safe discretionary from student_model — shows how much is okay to spend */}
+      {safe_discretionary_ngn != null && safe_discretionary_ngn > 0 && effectiveVerdict !== "HOLD" && (
+        <div className="flex items-center justify-between rounded-xl border border-white/30 bg-white/15 px-4 py-3">
+          <p className="text-xs opacity-80">Safe weekly spend</p>
+          <p className="font-bold text-sm">₦{safe_discretionary_ngn.toLocaleString()}</p>
         </div>
-      ) : allocation_plain ? (
-        // FIX 2: opacity-85 is not a valid Tailwind utility (only 0/5/10…80/90/95/100).
-        // Replaced with opacity-80.
-        <p className="text-sm opacity-80 leading-relaxed border border-white/20 rounded-lg p-3">
-          {allocation_plain}
-        </p>
-      ) : null}
+      )}
+
+      {/* Runway indicator */}
+      {weeks_of_runway != null && weeks_of_runway < 8 && (
+        <div className="flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-2">
+          <div className={`h-2 w-2 rounded-full ${weeks_of_runway < 2 ? "bg-red-400" : weeks_of_runway < 4 ? "bg-amber-400" : "bg-green-400"}`} />
+          <p className="text-xs opacity-90">
+            Money lasts <span className="font-bold">{weeks_of_runway.toFixed(1)} weeks</span> at current spending pace
+          </p>
+        </div>
+      )}
 
       <button
         className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition p-3 text-sm font-semibold rounded-xl border border-white/30"
@@ -174,24 +209,6 @@ export default function WeeklyVerdictCard({
       >
         See plan details
       </button>
-    </div>
-  );
-}
-
-function Stat({
-  title,
-  value,
-  subtitle,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-}) {
-  return (
-    <div className="flex-1 border border-white/40 p-3 rounded-lg">
-      <p className="text-xs uppercase opacity-70">{title}</p>
-      <p className="font-bold">{value}</p>
-      <p className="text-[11px] opacity-80 mt-0.5">{subtitle}</p>
     </div>
   );
 }
