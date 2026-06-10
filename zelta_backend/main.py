@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from config.settings import settings
 from core.firebase import initialize_firebase
 from middleware.cors import setup_cors
-from routes import intelligence, wallet, simulation, copilot, portfolio, profile, dev_auth, behavioral
+from routes import intelligence, wallet, simulation, copilot, portfolio, profile, dev_auth, behavioral, mono, squad, gig
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -73,6 +73,10 @@ app.include_router(copilot.router)
 app.include_router(portfolio.router)
 app.include_router(profile.router)
 app.include_router(dev_auth.router)
+# ── New integrations ───────────────────────────────────────
+app.include_router(mono.router)    # Simulated Mono Connect
+app.include_router(squad.router)   # Simulated Squad Co
+app.include_router(gig.router)     # Campus Gig Board
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

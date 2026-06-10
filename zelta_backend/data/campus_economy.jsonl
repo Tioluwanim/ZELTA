@@ -1,0 +1,42 @@
+{"category": "food", "item": "Plate of rice with chicken - Mama Caro Kitchen", "price_ngn": 1500, "location": "SUB Area", "frequency": "daily", "price_range": [1200, 2000], "campus": "OAU"}
+{"category": "food", "item": "Indomie with egg - hostel canteen", "price_ngn": 600, "location": "Hostel canteens", "frequency": "daily", "price_range": [500, 800], "campus": "OAU"}
+{"category": "food", "item": "Jollof rice + plantain - Faculty canteen", "price_ngn": 1200, "location": "Faculty canteens", "frequency": "daily", "price_range": [1000, 1800], "campus": "OAU"}
+{"category": "food", "item": "Suya (medium stick)", "price_ngn": 1000, "location": "Suya spots", "frequency": "weekly", "price_range": [700, 1500], "campus": "OAU"}
+{"category": "food", "item": "Shawarma", "price_ngn": 2000, "location": "Fajuyi Area", "frequency": "weekly", "price_range": [1500, 3000], "campus": "OAU"}
+{"category": "food", "item": "Amala + ewedu - local canteen", "price_ngn": 900, "location": "Campus environs", "frequency": "daily", "price_range": [700, 1200], "campus": "OAU"}
+{"category": "transport", "item": "Okada (motorcycle) - within campus", "price_ngn": 100, "location": "Campus", "frequency": "daily", "price_range": [100, 200], "campus": "OAU"}
+{"category": "transport", "item": "Cab from campus to Ife town", "price_ngn": 400, "location": "Campus gate", "frequency": "weekly", "price_range": [300, 600], "campus": "OAU"}
+{"category": "transport", "item": "Bus (Danfo) - Ife to Ibadan", "price_ngn": 1500, "location": "Ife motor park", "frequency": "monthly", "price_range": [1200, 2000], "campus": "OAU"}
+{"category": "transport", "item": "Bolt ride - within Ile-Ife", "price_ngn": 800, "location": "Ile-Ife", "frequency": "weekly", "price_range": [500, 1500], "campus": "OAU"}
+{"category": "data", "item": "MTN 1.5GB data bundle (1 week)", "price_ngn": 500, "location": "Online/airtime", "frequency": "weekly", "price_range": [500, 500], "campus": "OAU"}
+{"category": "data", "item": "Glo 5GB bundle (1 month)", "price_ngn": 2500, "location": "Online/airtime", "frequency": "monthly", "price_range": [2000, 3000], "campus": "OAU"}
+{"category": "data", "item": "Airtel 10GB (1 month)", "price_ngn": 3000, "location": "Online/airtime", "frequency": "monthly", "price_range": [2500, 4000], "campus": "OAU"}
+{"category": "data", "item": "Airtime recharge (MTN)", "price_ngn": 1000, "location": "Everywhere", "frequency": "weekly", "price_range": [500, 2000], "campus": "OAU"}
+{"category": "education", "item": "Photocopy + binding (project/assignment)", "price_ngn": 800, "location": "STS Centre / Copy shops", "frequency": "weekly", "price_range": [200, 2000], "campus": "OAU"}
+{"category": "education", "item": "Textbook purchase (used)", "price_ngn": 5000, "location": "Book vendors", "frequency": "per_semester", "price_range": [1000, 15000], "campus": "OAU"}
+{"category": "education", "item": "Course form / exam clearance", "price_ngn": 3000, "location": "Faculty admin", "frequency": "per_semester", "price_range": [2000, 5000], "campus": "OAU"}
+{"category": "education", "item": "Library fine clearance", "price_ngn": 500, "location": "University Library", "frequency": "occasional", "price_range": [200, 2000], "campus": "OAU"}
+{"category": "utilities", "item": "Hostel electric token (PHCN prepaid)", "price_ngn": 3000, "location": "Hostel block offices", "frequency": "monthly", "price_range": [2000, 6000], "campus": "OAU"}
+{"category": "utilities", "item": "Water (sachet water - daily supply)", "price_ngn": 500, "location": "Water vendors", "frequency": "weekly", "price_range": [300, 700], "campus": "OAU"}
+{"category": "utilities", "item": "Laundry (external wash + iron)", "price_ngn": 1500, "location": "Laundry services", "frequency": "weekly", "price_range": [1000, 3000], "campus": "OAU"}
+{"category": "entertainment", "item": "Movie ticket (cinema in Ife)", "price_ngn": 2500, "location": "Ife cinemas", "frequency": "monthly", "price_range": [1500, 4000], "campus": "OAU"}
+{"category": "entertainment", "item": "Party entrance fee (campus events)", "price_ngn": 1500, "location": "Multipurpose Hall", "frequency": "monthly", "price_range": [500, 5000], "campus": "OAU"}
+{"category": "entertainment", "item": "Netflix/Spotify subscription (shared)", "price_ngn": 1200, "location": "Online", "frequency": "monthly", "price_range": [800, 2000], "campus": "OAU"}
+{"category": "hostel", "item": "OAU hostel fee (200 level, per semester)", "price_ngn": 58500, "location": "Bursary", "frequency": "per_semester", "price_range": [45000, 75000], "campus": "OAU"}
+{"category": "hostel", "item": "Off-campus room rent (self-con, monthly)", "price_ngn": 15000, "location": "Parapo/Lagere", "frequency": "monthly", "price_range": [10000, 25000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Graphic design (poster/flyer)", "price_ngn": 8000, "location": "Remote/Campus", "frequency": "per_job", "price_range": [3000, 20000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Coding / debugging session", "price_ngn": 15000, "location": "Library/Remote", "frequency": "per_job", "price_range": [5000, 50000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Typist / data entry (per page)", "price_ngn": 200, "location": "Campus", "frequency": "per_page", "price_range": [100, 400], "campus": "OAU"}
+{"category": "gig_rates", "item": "Errand / delivery (within campus)", "price_ngn": 500, "location": "Campus", "frequency": "per_trip", "price_range": [300, 1500], "campus": "OAU"}
+{"category": "gig_rates", "item": "Tutoring session (1 hour)", "price_ngn": 5000, "location": "Library/Hostel", "frequency": "per_hour", "price_range": [2000, 10000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Event photography (campus event)", "price_ngn": 20000, "location": "Campus venues", "frequency": "per_event", "price_range": [10000, 50000], "campus": "OAU"}
+{"category": "gig_rates", "item": "POS operation (daily profit estimate)", "price_ngn": 3000, "location": "Hostel area", "frequency": "daily", "price_range": [1500, 7000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Food sales at hostel (per day profit)", "price_ngn": 5000, "location": "Hostel", "frequency": "daily", "price_range": [2000, 12000], "campus": "OAU"}
+{"category": "gig_rates", "item": "Campus printing shop (daily profit)", "price_ngn": 4000, "location": "STS area", "frequency": "daily", "price_range": [1500, 8000], "campus": "OAU"}
+{"category": "fees", "item": "OAU school fees (200L, STEMB)", "price_ngn": 165000, "location": "Bursary", "frequency": "per_year", "price_range": [120000, 220000], "campus": "OAU"}
+{"category": "fees", "item": "OAU school fees (200L, Arts/Law)", "price_ngn": 110000, "location": "Bursary", "frequency": "per_year", "price_range": [80000, 150000], "campus": "OAU"}
+{"category": "fees", "item": "Medical/health fee", "price_ngn": 5000, "location": "Bursary", "frequency": "per_year", "price_range": [3000, 8000], "campus": "OAU"}
+{"category": "fees", "item": "Library fee", "price_ngn": 2000, "location": "Bursary", "frequency": "per_year", "price_range": [1000, 3000], "campus": "OAU"}
+{"category": "personal_care", "item": "Barbing (haircut)", "price_ngn": 800, "location": "Campus barbers", "frequency": "bi_weekly", "price_range": [600, 1500], "campus": "OAU"}
+{"category": "personal_care", "item": "Toiletries (soap, toothpaste, etc.)", "price_ngn": 3000, "location": "Campus provision stores", "frequency": "monthly", "price_range": [1500, 5000], "campus": "OAU"}
+{"category": "personal_care", "item": "Hairdo (female students - braiding)", "price_ngn": 8000, "location": "Ife town salons", "frequency": "monthly", "price_range": [3000, 20000], "campus": "OAU"}

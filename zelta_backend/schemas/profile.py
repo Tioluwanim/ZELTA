@@ -33,6 +33,13 @@ class FinancialProfile(BaseModel):
     capital_range: Optional[str] = None
     monthly_income: Optional[float] = None
 
+    # Academic calendar — feeds λt (exam-proximity modifier) in Kelly Criterion
+    # Set these to get exam-aware capital protection
+    next_exam_date: Optional[str] = None       # ISO date string e.g. "2026-07-15"
+    semester_start_date: Optional[str] = None  # ISO date string e.g. "2026-01-15"
+    semester_length_days: Optional[int] = Field(default=120, ge=30, le=200)
+    days_to_exam: Optional[int] = None         # computed/overrideable
+
 
 class PreferencesProfile(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
