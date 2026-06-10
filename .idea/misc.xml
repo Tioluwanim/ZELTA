@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.14 (ZELTA)" project-jdk-type="Python SDK" />
+=======
+  <component name="Black">
+    <option name="sdkName" value="Python 3.13 (PythonProject)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.14 virtualenv at C:\Users\ADMIN\Documents\ZELTA\zelta_ai\.venv" project-jdk-type="Python SDK" />
+>>>>>>> ae335585a6eff1cebde61910036ad4c71874efcf
 </project>
