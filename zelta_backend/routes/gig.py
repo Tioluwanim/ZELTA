@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from core.dependencies import CurrentUser, DB
@@ -31,7 +31,7 @@ class ExtractedCampusGig(BaseModel):
     payout: float
     payout_raw: str
     time_estimate: Optional[str] = None
-    skills_required: List[str] = []
+    skills_required: List[str] = Field(default_factory=list)
     status: str = "OPEN"  # OPEN | CLAIMED | COMPLETED
     raw_text: str
     extracted_at: str
