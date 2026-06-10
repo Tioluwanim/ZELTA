@@ -119,17 +119,82 @@ function AddIncomeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
 }
 
 // ─── Add Expense Modal ────────────────────────────────────────────
+
+// ─── Intercept Modal ─────────────────────────────────────────────
+function InterceptModal({
+  amount, category, runwayDays, bqVerdict, bqMessage, streakDays,
+  onProceed, onCancel, proceeding,
+}: {
+  amount: number; category: string; runwayDays: number; bqVerdict: string;
+  bqMessage: string; streakDays: number; onProceed: () => void;
+  onCancel: () => void; proceeding: boolean;
+}) {
+  const isEmergency = bqVerdict === "HOLD" || runwayDays <= 7;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center"
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="w-full max-w-sm rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl">
+        <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl mx-auto ${isEmergency ? "bg-red-100" : "bg-amber-100"}`}>
+          <AlertTriangle className={`h-6 w-6 ${isEmergency ? "text-red-500" : "text-amber-500"}`} />
+        </div>
+        <h2 className="text-center text-base font-bold text-gray-900">ZELTA Intercept 🛡️</h2>
+        <p className={`mt-1 text-center text-sm font-semibold ${isEmergency ? "text-red-600" : "text-amber-600"}`}>
+          BQ Verdict: <span className="uppercase">{bqVerdict}</span>
+        </p>
+        <div className={`mt-4 rounded-2xl p-4 text-center ${isEmergency ? "bg-red-50 border border-red-100" : "bg-amber-50 border border-amber-100"}`}>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {bqMessage || `Chief, spending ₦${amount.toLocaleString()} on ${category} could hurt your runway. Are you sure?`}
+          </p>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs text-gray-500">Runway left</p>
+            <p className="font-bold text-gray-800">{runwayDays} days</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs text-gray-500">You are spending</p>
+            <p className={`font-bold ${isEmergency ? "text-red-600" : "text-amber-600"}`}>
+              ₦{amount.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        {streakDays > 0 && (
+          <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2 text-center">
+            <p className="text-xs text-emerald-700">
+              🔥 You have a <strong>{streakDays}-day</strong> save streak. Cancel to protect it!
+            </p>
+          </div>
+        )}
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button onClick={onCancel}
+            className="rounded-2xl border-2 border-gray-200 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
+            Cancel ✅
+          </button>
+          <button onClick={onProceed} disabled={proceeding}
+            className={`flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold text-white transition disabled:opacity-50 ${isEmergency ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"}`}>
+            {proceeding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {proceeding ? "Processing..." : "Proceed Anyway"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 function AddExpenseModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("food");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // BQ Intercept state
+  const [intercept, setIntercept] = useState<{
+    verdict: string; message: string; runwayDays: number; streakDays: number;
+  } | null>(null);
+  const [interceptChecking, setInterceptChecking] = useState(false);
+  const [proceeding, setProceeding] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!amount || Number(amount) <= 0) { setError("Please enter a valid amount."); return; }
-    setLoading(true); setError(null);
+  const doPost = async () => {
+    setProceeding(true);
     try {
       await apiFetch("/api/wallet/expense", {
         method: "POST",
@@ -138,11 +203,50 @@ function AddExpenseModal({ onClose, onSuccess }: { onClose: () => void; onSucces
       onSuccess(); onClose();
     } catch (err) {
       setError((err as Error).message || "Failed to add expense.");
-    } finally { setLoading(false); }
+      setIntercept(null);
+    } finally { setProceeding(false); }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || Number(amount) <= 0) { setError("Please enter a valid amount."); return; }
+    setInterceptChecking(true); setError(null);
+    try {
+      const check = await apiFetch<{
+        verdict: string; message: string; runway_days: number;
+        streak_days: number; should_intercept: boolean;
+      }>("/api/wallet/intercept-check", {
+        method: "POST",
+        body: JSON.stringify({ amount: Number(amount), category }),
+      });
+      if (check.should_intercept) {
+        setIntercept({ verdict: check.verdict, message: check.message,
+          runwayDays: check.runway_days, streakDays: check.streak_days });
+      } else {
+        await doPost();
+      }
+    } catch {
+      // Intercept endpoint not available — proceed without check
+      await doPost();
+    } finally { setInterceptChecking(false); }
   };
 
   return (
-    <ModalShell title="Add Expense" icon={<MinusCircle className="h-5 w-5 text-rose-500" />} onClose={onClose}>
+    <>
+      {intercept && (
+        <InterceptModal
+          amount={Number(amount)}
+          category={category}
+          runwayDays={intercept.runwayDays}
+          bqVerdict={intercept.verdict}
+          bqMessage={intercept.message}
+          streakDays={intercept.streakDays}
+          onProceed={doPost}
+          onCancel={() => setIntercept(null)}
+          proceeding={proceeding}
+        />
+      )}
+      <ModalShell title="Add Expense" icon={<MinusCircle className="h-5 w-5 text-rose-500" />} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-700">Amount (₦)</label>
@@ -169,10 +273,11 @@ function AddExpenseModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         <button type="submit" disabled={loading}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:opacity-50">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MinusCircle className="h-4 w-4" />}
-          {loading ? "Saving..." : "Add Expense"}
+          {interceptChecking ? "Checking BQ..." : loading ? "Saving..." : "Add Expense"}
         </button>
       </form>
     </ModalShell>
+    </>
   );
 }
 

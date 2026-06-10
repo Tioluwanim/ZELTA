@@ -604,3 +604,66 @@ export function useRecordOutcome() {
 
   return { ...state, recordOutcome };
 }
+// ─── Sapa Health Bar ──────────────────────────────────────────────
+// Derives the student's financial health score (0-100) from wallet + intelligence data.
+// 100 = fully healthy, 0 = Sapa (broke).
+export function useSapaHealth(): {
+  sapaScore: number;          // 0-100 (100 = healthy)
+  runwayDays: number;
+  weeklyBurn: number;
+  freeCash: number;
+  streakDays: number;
+  lambdaT: number;            // exam proximity modifier 0-1
+  daysToExam: number | null;
+  loading: boolean;
+} {
+  const wallet = useWallet();
+  const profile = useProfile();
+
+  const freeCash = wallet.data?.free_cash ?? 0;
+  const weeklyBurn = wallet.data?.weekly_burn_rate ?? 1;
+  const runwayDays = weeklyBurn > 0 ? Math.round((freeCash / weeklyBurn) * 7) : 99;
+
+  // Compute λt — exam proximity modifier
+  // λt = 1 - (days_to_exam / semester_length)
+  // As exams approach λt → 0 (less capital allowed)
+  let lambdaT = 1.0;
+  let daysToExam: number | null = null;
+  const financial = profile.data?.financial as any;
+  if (financial?.next_exam_date) {
+    const examDate = new Date(financial.next_exam_date);
+    const today = new Date();
+    daysToExam = Math.max(0, Math.ceil((examDate.getTime() - today.getTime()) / 86400000));
+    const semesterLen = financial.semester_length_days ?? 120;
+    lambdaT = Math.max(0.1, Math.min(1.0, daysToExam / semesterLen));
+  }
+
+  // Sapa score: combines runway, free cash ratio, exam proximity
+  const runwayScore = Math.min(100, (runwayDays / 30) * 100);   // 30 days = 100%
+  const examPenalty = (1 - lambdaT) * 20;                        // exam proximity penalty
+  const sapaScore = Math.max(0, Math.min(100, Math.round(runwayScore - examPenalty)));
+
+  // Simple streak: days since last entertainment/other spend (proxy)
+  const transactions = wallet.data?.recent_transactions ?? [];
+  let streakDays = 0;
+  const today = new Date();
+  for (const tx of transactions) {
+    if (tx.type === "expense" && ["entertainment", "other"].includes(tx.category)) {
+      const txDate = new Date(tx.date);
+      const daysDiff = Math.floor((today.getTime() - txDate.getTime()) / 86400000);
+      streakDays = daysDiff;
+      break;
+    }
+  }
+
+  return {
+    sapaScore,
+    runwayDays,
+    weeklyBurn,
+    freeCash,
+    streakDays,
+    lambdaT,
+    daysToExam,
+    loading: wallet.loading || profile.loading,
+  };
+}

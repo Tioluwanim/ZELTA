@@ -39,6 +39,7 @@ export default function Page() {
   const router = useRouter();
 
   const [name, setName] = useState("");
+  const [examDate, setExamDate] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,7 @@ export default function Page() {
           financial: {
             capital_range: selectedOptions[0],
             risk_tolerance: RISK_MAP[selectedOptions[1]] ?? "moderate",
+            next_exam_date: examDate || undefined,
           },
           preferences: {
             primary_goal: selectedOptions[2],
@@ -110,6 +112,18 @@ export default function Page() {
             placeholder="Enter your name"
             className="w-full rounded-xl border border-gray-300 bg-transparent px-6 py-2 focus:border-green-500 focus:outline-none"
           />
+        </div>
+
+        <div className="mb-4">
+          <h4 className="mb-1 font-semibold">Next Exam Date <span className="text-xs font-normal text-gray-400">(optional — activates ZELTA exam protection)</span></h4>
+          <input
+            type="date"
+            value={examDate}
+            onChange={(e) => setExamDate(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            className="w-full rounded-xl border border-gray-300 bg-transparent px-6 py-2 focus:border-green-500 focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-gray-400">ZELTA reduces your spending limit as exams approach (λt modifier)</p>
         </div>
 
         {formSections.map((section) => (

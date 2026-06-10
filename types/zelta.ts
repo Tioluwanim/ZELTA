@@ -484,6 +484,54 @@ export interface FinancialProfile {
   risk_preference?: string | null;
   capital_range?: string | null;
   monthly_income?: number | null;
+  // Academic calendar — feeds λt modifier
+  next_exam_date?: string | null;        // ISO date e.g. "2026-07-15"
+  semester_start_date?: string | null;
+  semester_length_days?: number | null;
+  days_to_exam?: number | null;
+}
+
+// ─── Gig Board ────────────────────────────────────────────────────
+export interface ExtractedCampusGig {
+  id: string;
+  task: string;
+  location: string;
+  payout: number;
+  payout_raw: string;
+  time_estimate?: string | null;
+  skills_required?: string[];
+  status: "OPEN" | "CLAIMED" | "COMPLETED";
+  raw_text: string;
+  extracted_at: string;
+  poster?: string | null;
+  extracted_by_uid?: string | null;
+}
+
+export interface GigExtractRequest {
+  raw_text: string;
+  poster?: string;
+}
+
+export interface GigExtractResponse {
+  success: boolean;
+  gig?: ExtractedCampusGig;
+  error?: string;
+}
+
+// ─── Intercept Check ──────────────────────────────────────────────
+export interface InterceptCheckRequest {
+  amount: number;
+  category?: string;
+}
+
+export interface InterceptCheckResponse {
+  should_intercept: boolean;
+  verdict: string;
+  message: string;
+  runway_days: number;
+  streak_days: number;
+  free_cash: number;
+  post_spend_free_cash: number;
 }
 export interface PreferencesProfile {
   currency: string;

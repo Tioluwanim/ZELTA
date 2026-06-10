@@ -7,16 +7,16 @@ import {
   Sparkles,
   MessageSquare,
   History,
+  Briefcase,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-// Profile and History are accessible from the header avatar dropdown.
-// The sidebar only carries the 5 primary sections.
 const NAV_ITEMS = [
   { icon: Home,          label: "Home",       href: "/dashboard" },
   { icon: Wallet,        label: "Wallet",     href: "/dashboard/wallet" },
   { icon: Brain,         label: "Behavioral", href: "/dashboard/behavioral" },
   { icon: Sparkles,      label: "Simulation", href: "/dashboard/simulations" },
+  { icon: Briefcase,     label: "Gig Board",  href: "/dashboard/gig-board" },
   { icon: MessageSquare, label: "Co-pilot",   href: "/dashboard/co-pilot" },
   { icon: History,       label: "History",    href: "/dashboard/history" },
 ];

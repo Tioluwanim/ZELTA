@@ -48,6 +48,7 @@ function ProfileContent() {
   const [capitalRange, setCapitalRange] = useState("₦10,000 - ₦50,000");
   const [risk, setRisk] = useState<"low" | "moderate" | "high">("moderate");
   const [income, setIncome] = useState("");
+  const [examDate, setExamDate] = useState("");
   const [goal, setGoal] = useState("Build Emergency Fund");
   const [aggression, setAggression] = useState(50);
   const [stressSens, setStressSens] = useState(60);
@@ -67,6 +68,7 @@ function ProfileContent() {
       setCapitalRange(profile.data.financial?.capital_range || "₦10,000 - ₦50,000");
       setRisk(profile.data.financial?.risk_tolerance || "moderate");
       setIncome(String(profile.data.financial?.monthly_income || ""));
+      setExamDate((profile.data.financial as any)?.next_exam_date || "");
       setGoal(profile.data.preferences?.primary_goal || "Build Emergency Fund");
       setAggression(profile.data.preferences?.decision_aggressiveness ?? 50);
       setStressSens(profile.data.preferences?.stress_sensitivity ?? 60);
@@ -101,7 +103,8 @@ function ProfileContent() {
         capital_range: capitalRange,
         risk_tolerance: risk as "low" | "moderate" | "high",
         monthly_income: Number(income) || undefined,
-      },
+        next_exam_date: examDate || undefined,
+      } as any,
     });
     setIsSaving(false);
   };
@@ -210,6 +213,13 @@ function ProfileContent() {
             <p className="mb-2 text-sm font-semibold text-gray-700">Monthly Income (Optional)</p>
             <input type="number" value={income} onChange={(e) => setIncome(e.target.value)} placeholder="Enter amount"
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-[#10b981] focus:ring-1 focus:ring-[#10b981]" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-gray-700">Next Exam Date</label>
+            <input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-[#10b981]" />
+            <p className="mt-1 text-xs text-gray-400">ZELTA reduces spending limits as exams approach (λt modifier)</p>
           </div>
           <button onClick={handleSaveProfile} disabled={isSaving} className="w-full rounded-xl bg-[#10b981] py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b9268] disabled:opacity-50">{isSaving ? "Saving..." : "Save Financial Profile"}</button>
         </section>
