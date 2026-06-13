@@ -11,7 +11,8 @@ import DecisionScoreCard from "./DecisionScoreCard";
 import StressIndexCard from "./StressIndexCard";
 import SurvivalBanner from "@/components/SurvivalBanner";
 import { useZelta } from "@/context/zeltaContext";
-import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { useSapaHealth } from "@/hooks/zelta";
+import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp, Briefcase, Flame, Clock } from "lucide-react";
 import Link2 from "next/link";
 
 const hour = new Date().getHours();
@@ -20,6 +21,7 @@ const greeting =
 
 function Dashboard() {
   const { intelligence, globalError, globalLoading, retryAll, profile, bayse } = useZelta();
+  const sapa = useSapaHealth();
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -87,6 +89,58 @@ function Dashboard() {
           title={`${greeting}, ${displayName}`}
           description="here's your financial intelligence for today"
         />
+
+        {/* ── Sapa Health Bar ── */}
+        {!sapa.loading && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Sapa Health</p>
+                <p className="text-2xl font-bold text-gray-900">{sapa.sapaScore}%</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400">Runway</p>
+                <p className="text-lg font-bold text-gray-800">{sapa.runwayDays} days</p>
+              </div>
+            </div>
+            {/* Health bar */}
+            <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className={`h-3 rounded-full transition-all duration-500 ${
+                  sapa.sapaScore >= 60 ? "bg-emerald-500" :
+                  sapa.sapaScore >= 30 ? "bg-amber-400" : "bg-red-500"
+                }`}
+                style={{ width: `${sapa.sapaScore}%` }}
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center gap-1.5">
+                <Flame className="h-3.5 w-3.5 text-amber-400" />
+                <span>{sapa.streakDays > 0 ? `${sapa.streakDays}-day save streak 🔥` : "Start a save streak"}</span>
+              </div>
+              {sapa.daysToExam !== null && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-violet-400" />
+                  <span className="text-violet-600 font-medium">λt={sapa.lambdaT.toFixed(2)} · {sapa.daysToExam}d to exam</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Gig Board shortcut ── */}
+        <Link href="/dashboard/gig-board" className="flex items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 transition hover:bg-emerald-100">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500">
+              <Briefcase className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Campus Gig Board</p>
+              <p className="text-xs text-emerald-600">Find side hustles to extend your runway</p>
+            </div>
+          </div>
+          <ChevronUp className="h-4 w-4 rotate-90 text-emerald-400" />
+        </Link>
 
         {/* ── Survival / Emergency Banner ── */}
         {(agentMode === "EMERGENCY" || agentMode === "SURVIVAL") && (
