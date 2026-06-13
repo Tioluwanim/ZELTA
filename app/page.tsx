@@ -135,7 +135,7 @@ export default function Home() {
                 Login
               </Link>
               <Link
-                href="/signup"
+                href="/sign-up"
                 className="rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300"
               >
                 Sign Up
