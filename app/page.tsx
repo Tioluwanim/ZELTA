@@ -117,8 +117,33 @@ export default function Home() {
       <main className="relative overflow-hidden pb-20">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_55%)] blur-3xl" />
         <div className="pointer-events-none absolute right-0 top-36 h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
+
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
-          <section className="relative grid gap-10 pt-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-12">
+          <header className="flex items-center justify-between py-6">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/15 ring-1 ring-cyan-400/25">
+                <Sparkles className="h-5 w-5 text-cyan-300" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-white">Zelta</span>
+            </Link>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/login"
+                className="rounded-full border border-slate-700 bg-slate-900/80 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300"
+              >
+                Sign Up
+              </Link>
+            </div>
+          </header>
+
+          <section className="relative grid gap-10 pt-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-12">
             <div className="space-y-10">
               <motion.div
                 initial="hidden"
@@ -140,7 +165,7 @@ export default function Home() {
                     <motion.span
                       key={`${word}-${index}`}
                       variants={variants.word}
-                      className="inline-block mr-2 whitespace-nowrap"
+                      className="mr-2 inline-block whitespace-nowrap"
                     >
                       {word}
                     </motion.span>
@@ -169,6 +194,14 @@ export default function Home() {
                     Join Waitlist
                     <ArrowRight className="h-4 w-4" />
                   </Link>
+
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-400/40 hover:bg-slate-800"
+                  >
+                    Create account
+                  </Link>
+
                   <span className="text-sm text-slate-500">
                     Launching with OPay Innovation Challenge 2026 support.
                   </span>
@@ -201,6 +234,21 @@ export default function Home() {
                   <p className="max-w-sm text-sm leading-6 text-slate-400">
                     More than two in three students feel pressure before month end. Zelta intercepts bad spend decisions while there is still runway.
                   </p>
+
+                  <div className="flex w-full gap-3">
+                    <Link
+                      href="/login"
+                      className="flex-1 rounded-full border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-slate-600 hover:bg-slate-800"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="flex-1 rounded-full bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -236,7 +284,7 @@ export default function Home() {
                     <motion.div
                       key={card.title}
                       whileHover={{ y: -6 }}
-                      className={`rounded-3xl border border-slate-800/90 bg-slate-950/75 p-6 transition-shadow shadow-[0_0_0_rgba(0,0,0,0)] hover:shadow-[0_15px_50px_rgba(56,189,248,0.15)]`}
+                      className="rounded-3xl border border-slate-800/90 bg-slate-950/75 p-6 transition-shadow shadow-[0_0_0_rgba(0,0,0,0)] hover:shadow-[0_15px_50px_rgba(56,189,248,0.15)]"
                     >
                       <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-gradient-to-br ${card.accent} text-white shadow-xl shadow-cyan-500/10`}>
                         <Icon className="h-6 w-6" />
@@ -290,6 +338,20 @@ export default function Home() {
           </section>
 
           <footer className="mt-20 border-t border-slate-800/70 py-8 text-center text-sm text-slate-500">
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <Link
+                href="/login"
+                className="rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
+              >
+                Login
+              </Link>
+              <Link
+                href="/sign-up"
+                className="rounded-full bg-cyan-400 px-4 py-2 font-semibold text-slate-950 transition hover:bg-cyan-300"
+              >
+                Sign Up
+              </Link>
+            </div>
             Team Zelta • OPay Innovation Challenge 2026
           </footer>
         </div>
