@@ -507,6 +507,38 @@ export interface ExtractedCampusGig {
   extracted_by_uid?: string | null;
 }
 
+// ─── Gig Board ────────────────────────────────────────────────────
+export interface ExtractedCampusGig {
+  id: string;
+  task: string;
+  location: string;
+  payout: number;
+  payout_raw: string;
+  time_estimate?: string | null;
+  skills_required?: string[];
+  status: "OPEN" | "CLAIMED" | "COMPLETED";
+  raw_text: string;
+  extracted_at: string;
+  poster?: string | null;
+  extracted_by_uid?: string | null;
+}
+
+export interface GigSuggestion {
+  id?: string;
+  task: string;
+  location?: string;
+  payout: number;
+  hours?: number;
+  worth_score?: number;
+  effort_score?: number;
+  reward_score?: number;
+  fit_score?: number;
+  reason?: string;
+  status?: "OPEN" | "CLAIMED" | "COMPLETED";
+  source?: string;
+  action_label?: string;
+}
+
 export interface GigExtractRequest {
   raw_text: string;
   poster?: string;
@@ -517,7 +549,6 @@ export interface GigExtractResponse {
   gig?: ExtractedCampusGig;
   error?: string;
 }
-
 // ─── Intercept Check ──────────────────────────────────────────────
 export interface InterceptCheckRequest {
   amount: number;

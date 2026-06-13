@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ErrorBanner from "@/components/ErrorBanner";
 import DashboardOverlay from "@/components/DashboardOverlay";
@@ -10,10 +11,10 @@ import WeeklyVerdictCard from "@/app/dashboard/WeeklyVerdictCard";
 import DecisionScoreCard from "./DecisionScoreCard";
 import StressIndexCard from "./StressIndexCard";
 import SurvivalBanner from "@/components/SurvivalBanner";
+import InterceptModal from "@/components/InterceptModal";
 import { useZelta } from "@/context/zeltaContext";
-import { useSapaHealth } from "@/hooks/zelta";
-import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp, Briefcase, Flame, Clock } from "lucide-react";
-import Link2 from "next/link";
+import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Briefcase } from "lucide-react";
+import { DEMO_INTERCEPT } from "@/lib/demoData";
 
 const hour = new Date().getHours();
 const greeting =
@@ -21,9 +22,10 @@ const greeting =
 
 function Dashboard() {
   const { intelligence, globalError, globalLoading, retryAll, profile, bayse } = useZelta();
-  const sapa = useSapaHealth();
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [showIntercept, setShowIntercept] = useState(false);
+  const router = useRouter();
 
   const intel = intelligence.data;
 
@@ -90,57 +92,35 @@ function Dashboard() {
           description="here's your financial intelligence for today"
         />
 
-        {/* ── Sapa Health Bar ── */}
-        {!sapa.loading && (
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Sapa Health</p>
-                <p className="text-2xl font-bold text-gray-900">{sapa.sapaScore}%</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-400">Runway</p>
-                <p className="text-lg font-bold text-gray-800">{sapa.runwayDays} days</p>
-              </div>
-            </div>
-            {/* Health bar */}
-            <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className={`h-3 rounded-full transition-all duration-500 ${
-                  sapa.sapaScore >= 60 ? "bg-emerald-500" :
-                  sapa.sapaScore >= 30 ? "bg-amber-400" : "bg-red-500"
-                }`}
-                style={{ width: `${sapa.sapaScore}%` }}
-              />
-            </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center gap-1.5">
-                <Flame className="h-3.5 w-3.5 text-amber-400" />
-                <span>{sapa.streakDays > 0 ? `${sapa.streakDays}-day save streak 🔥` : "Start a save streak"}</span>
-              </div>
-              {sapa.daysToExam !== null && (
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-violet-400" />
-                  <span className="text-violet-600 font-medium">λt={sapa.lambdaT.toFixed(2)} · {sapa.daysToExam}d to exam</span>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* ── ZELTA Intercept Modal ── */}
+        {showIntercept && (
+          <InterceptModal
+            {...DEMO_INTERCEPT}
+            onContinue={() => setShowIntercept(false)}
+            onCancel={() => setShowIntercept(false)}
+            onSimulate={() => { setShowIntercept(false); router.push("/dashboard/simulations"); }}
+            onClose={() => setShowIntercept(false)}
+          />
         )}
 
-        {/* ── Gig Board shortcut ── */}
-        <Link href="/dashboard/gig-board" className="flex items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 transition hover:bg-emerald-100">
+        {/* ── Demo: Simulate Risky Transfer ── */}
+        <button
+          onClick={() => setShowIntercept(true)}
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-red-200 bg-red-50 px-4 py-3.5 text-left transition hover:bg-red-100 active:scale-[0.99]"
+        >
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500">
-              <Briefcase className="h-4 w-4 text-white" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100">
+              <ShieldAlert className="h-5 w-5 text-red-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-emerald-800">Campus Gig Board</p>
-              <p className="text-xs text-emerald-600">Find side hustles to extend your runway</p>
+              <p className="text-sm font-bold text-red-700">Simulate Risky Transfer</p>
+              <p className="text-xs text-red-400">See ZELTA intercept a dangerous spend in real time →</p>
             </div>
           </div>
-          <ChevronUp className="h-4 w-4 rotate-90 text-emerald-400" />
-        </Link>
+          <span className="shrink-0 rounded-xl bg-red-500 px-3 py-1 text-xs font-bold text-white uppercase tracking-wide">
+            DEMO
+          </span>
+        </button>
 
         {/* ── Survival / Emergency Banner ── */}
         {(agentMode === "EMERGENCY" || agentMode === "SURVIVAL") && (

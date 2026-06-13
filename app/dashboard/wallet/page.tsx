@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { useWallet } from "@/hooks/zelta";
 import { apiFetch } from "@/hooks/useFetch";
+import { DEMO_WALLET } from "@/lib/demoData";
 import {
   PlusCircle, MinusCircle, Lock, Wallet, TrendingUp, AlertTriangle,
   ArrowUpRight, ArrowDownRight, Eye, EyeOff, X, Loader2, CheckCircle,
@@ -563,7 +564,14 @@ function WalletSkeleton() {
 export default function WalletPage() {
   const [visible, setVisible] = useState(true);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const wallet = useWallet();
+  const walletHook = useWallet();
+  // Fall back to demo data so the prototype always shows content for judges
+  const wallet = {
+    ...walletHook,
+    data: walletHook.data ?? DEMO_WALLET,
+    loading: walletHook.loading && !walletHook.data,
+  };
+  const isDemo = !walletHook.data && !walletHook.loading;
 
   const handleModalSuccess = () => { wallet.refetch(); };
 

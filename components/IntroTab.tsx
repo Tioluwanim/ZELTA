@@ -16,25 +16,25 @@ const intro: Intro[] = [
   {
     id: "1",
     icon: Brain,
-    heading: "Market Emotion with Bayse",
+    heading: "Your AI Financial Guardian",
     details:
-      "Bayse measures emotional market behavior and crowd panic patterns, so you can decide with more clarity.",
+      "ZELTA watches your spending behavior, reads market stress, and checks your exam calendar — so it can protect you before bad decisions happen, not after.",
     buttonText: "Next",
   },
   {
     id: "2",
     icon: ArrowBigUp,
-    heading: "Market Panic Level Guidance",
+    heading: "Real-Time Financial Protection",
     details:
-      "Know when emotion is high. We show when to slow down, hold cash, or act with caution.",
+      "When you're about to overspend, ZELTA intercepts — shows your runway in days, names your bias, and gives you a recovery path. Not a block. A guardian.",
     buttonText: "Next",
   },
   {
     id: "3",
     icon: Target,
-    heading: "Clear Weekly Recommendation",
+    heading: "The Gig Connection",
     details:
-      "Get plain-English guidance on what to do this week, how much to allocate, and why it fits your risk level.",
+      "In SURVIVAL mode, ZELTA doesn't just warn you — it finds campus gigs ranked by effort-vs-reward so you can earn your way out fast.",
     buttonText: "Get Started",
   },
 ];

@@ -78,6 +78,23 @@ export default function LoginForm({
           {loading ? "Signing in..." : "Continue"}
         </Button>
 
+        {/* DEMO ACCOUNT */}
+        <div className="relative my-1">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-100" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white px-3 text-xs text-gray-400">or try the demo</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setEmail("demo@zelta.app"); setPassword("demo1234"); }}
+          className="w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 px-6 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-[0.98]"
+        >
+          ⚡ Try Demo Account — No signup needed
+        </button>
+
         {/* NAVIGATION */}
         <p className="text-center text-sm">
           New?{" "}
