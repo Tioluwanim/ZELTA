@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ErrorBanner from "@/components/ErrorBanner";
 import DashboardOverlay from "@/components/DashboardOverlay";
@@ -10,9 +11,10 @@ import WeeklyVerdictCard from "@/app/dashboard/WeeklyVerdictCard";
 import DecisionScoreCard from "./DecisionScoreCard";
 import StressIndexCard from "./StressIndexCard";
 import SurvivalBanner from "@/components/SurvivalBanner";
+import InterceptModal from "@/components/InterceptModal";
 import { useZelta } from "@/context/zeltaContext";
-import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
-import Link2 from "next/link";
+import { Wallet, Brain, TrendingUp, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Briefcase } from "lucide-react";
+import { DEMO_INTERCEPT } from "@/types/demoData";
 
 const hour = new Date().getHours();
 const greeting =
