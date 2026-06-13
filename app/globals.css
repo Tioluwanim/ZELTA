@@ -1,36 +1,135 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────── */
+/* LIGHT MODE (default) */
+/* ──────────────────────────────────────────────────────── */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --muted-foreground: #737373;
+  --card-bg: #f9fafb;
+  --card-border: #e5e7eb;
+  
+  /* Brand colors */
+  --primary: #3b82f6;
+  --secondary: #8b5cf6;
+  --accent: #06b6d4;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
 
-  /* --foreground: #ffffff;
-  --background: #171717; */
+/* ──────────────────────────────────────────────────────── */
+/* DARK MODE (fintech-first) */
+/* ──────────────────────────────────────────────────────── */
+.dark {
+  --background: #0f1419;
+  --foreground: #f1f5f9;
+  --muted-foreground: #cbd5e1;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  
+  /* Brand colors (adjusted for dark) */
+  --primary: #3b82f6;
+  --secondary: #a78bfa;
+  --accent: #06b6d4;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+
+/* ──────────────────────────────────────────────────────── */
+/* BASE STYLES */
+/* ──────────────────────────────────────────────────────── */
+* {
+  @apply transition-colors duration-200;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  @apply antialiased font-sans;
+}
+
+/* ──────────────────────────────────────────────────────── */
+/* SCROLLBAR STYLING (dark mode) */
+/* ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-slate-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 dark:bg-slate-600 rounded-full hover:bg-gray-500 dark:hover:bg-slate-500;
+}
+
+/* ──────────────────────────────────────────────────────── */
+/* FOCUS STYLES */
+/* ──────────────────────────────────────────────────────── */
+:focus-visible {
+  @apply outline-none ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-slate-900;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  @apply rounded-md;
+}
+
+/* ──────────────────────────────────────────────────────── */
+/* ANIMATIONS */
+/* ──────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ──────────────────────────────────────────────────────── */
+/* UTILITIES */
+/* ──────────────────────────────────────────────────────── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.glass-effect {
+  @apply backdrop-blur-md bg-white/10 dark:bg-slate-900/20 border border-white/20 dark:border-slate-700/30;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Dark mode disabled for now
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-*/
-
-body {
-  background: var(--foreground);
-  color: var(--background);
-
-  /* i aded the below to test light mode manualy  */
-  /* background: var(--background);
-  color: var(--foreground); */
-  width: 100%;
-  font-family: Arial, Helvetica, sans-serif;
+  --color-card: var(--card-bg);
 }
