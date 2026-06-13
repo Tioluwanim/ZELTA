@@ -196,7 +196,7 @@ export default function Home() {
                   </Link>
 
                   <Link
-                    href="/signup"
+                    href="/sign-up"
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-400/40 hover:bg-slate-800"
                   >
                     Create account
@@ -243,7 +243,7 @@ export default function Home() {
                       Login
                     </Link>
                     <Link
-                      href="/signup"
+                      href="/sign-up"
                       className="flex-1 rounded-full bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
                     >
                       Sign Up

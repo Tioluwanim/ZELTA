@@ -162,7 +162,7 @@ export interface BrainData {
   explanation: {
     summary: string;
     reasoning: string;
-    action: string;
+    action: string | null;
     what_this_means_for_you: string | null;
     bias_explanation: string | null;
     confidence_note: string | null;
@@ -225,7 +225,7 @@ export interface IntelligenceData {
   // Explanation
   summary: string;
   bq_alert: string | null;
-  action: string;
+  action: string | null;
   nlp_sentiment: number;
   headlines: unknown[];
 }
