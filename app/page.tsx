@@ -7,12 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSmoothScroll, usePrefersReducedMotion } from "@/hooks/useSmoothScroll";
 import FloatingNav from "@/components/FloatingNav";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
-// Matches the app's own tokens (see globals.css / dashboard components):
-// white/gray-50 surfaces, emerald as the primary accent, red for risk.
+// Matches the app's own tokens
 const EMERALD = "#10b981";
 const EMERALD_DARK = "#047857";
 const RED = "#ef4444";
@@ -21,6 +16,7 @@ const GRAY_LINE = "#d1d5db";
 const heroWords = ["Your", "finances", "already", "have", "a", "shape."];
 const heroWordsAccent = ["ZELTA", "shows", "it", "to", "you", "first."];
 
+// EDITED: Copy is now punchier and easier to read during a scroll animation.
 const beats = [
   {
     eyebrow: "Week one",
@@ -28,18 +24,19 @@ const beats = [
   },
   {
     eyebrow: "Week three",
-    line: "The Twin sees the bend before you do — deterministic cash-flow math and statistical forecasting on your real transactions, never a language model guessing your numbers.",
+    line: "The Twin sees the bend before you do. Deterministic math catches the dip—not a guessing language model.",
   },
   {
     eyebrow: "Before you spend",
-    line: "\u201CWhat happens if I buy this laptop now?\u201D Run it through the Future Lab and see the trajectory change before you commit.",
+    line: "“What if I buy this laptop now?” Run it through the Future Lab and see the trajectory change before you commit.",
   },
   {
     eyebrow: "When the gap is real",
-    line: "The Opportunity Engine matches the shortfall to legitimate, skill-fit gigs — insight that turns into action, not just an alert.",
+    line: "Insight turns into action. The Opportunity Engine matches your shortfall to legitimate, skill-fit gigs.",
   },
 ];
 
+// EDITED: These will now be rendered as beautiful, spacious cards.
 const pipeline = [
   {
     title: "Deterministic engine",
@@ -47,15 +44,15 @@ const pipeline = [
   },
   {
     title: "Statistical forecasting",
-    body: "Trend and seasonality drawn from real transaction history, pulled in through Mono.",
+    body: "Trend and seasonality drawn from real transaction history, pulled securely through Mono.",
   },
   {
     title: "Plain-language narration",
-    body: "An LLM explains what the math already found. It narrates the result — it doesn't invent it.",
+    body: "An LLM explains what the math already found. It narrates the result—it doesn't invent it.",
   },
   {
     title: "Future Lab",
-    body: "Simulate a decision against your real trajectory before you make it.",
+    body: "Simulate a big decision against your real financial trajectory before you actually make it.",
   },
   {
     title: "Opportunity Engine",
@@ -75,7 +72,12 @@ export default function Home() {
   const branchUpRef = useRef<SVGPathElement | null>(null);
   const beatRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // Hero entrance — one orchestrated moment, word by word.
+  // Safe GSAP Registration for Next.js
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+  }, []);
+
+  // Hero entrance
   useEffect(() => {
     const words = heroRef.current?.querySelectorAll("[data-word]");
     if (!words || words.length === 0) return;
@@ -99,7 +101,7 @@ export default function Home() {
     );
   }, [reducedMotion]);
 
-  // The trajectory sequence — the one signature moment of the page.
+  // The trajectory sequence
   useEffect(() => {
     if (reducedMotion) return;
     if (!trajectorySectionRef.current || !pinRef.current) return;
@@ -129,16 +131,12 @@ export default function Home() {
         },
       });
 
-      // Trunk draws across the first half of the sequence.
       tl.to(trunk, { strokeDashoffset: 0, ease: "none", duration: 4 }, 0);
-      // Branches draw across the second half — the fork moment.
       tl.to(branchDown, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
       tl.to(branchUp, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
-      // Once the Opportunity Engine resolves it, the downward branch fades.
       tl.to(branchDown, { opacity: 0.15, duration: 1 }, 6);
       tl.to(branchUp, { opacity: 1, duration: 1 }, 6);
 
-      // Four narrative beats, each taking a two-unit slot on the same scrub.
       beats.forEach((_, i) => {
         const el = beatRefs.current[i];
         if (!el) return;
@@ -162,11 +160,13 @@ export default function Home() {
     <div id="top" className="min-h-screen bg-white text-gray-900">
       <FloatingNav />
 
-      {/* Hero */}
-      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-24 pt-28 sm:px-10 sm:pt-32">
-        <p className="text-sm text-gray-500">AI Financial Twin, built for Nigerian university students</p>
+      {/* Hero: Added a bit more bottom padding */}
+      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-32 pt-28 sm:px-10 sm:pt-40">
+        <p className="text-sm font-medium tracking-wide text-gray-500 uppercase">
+          Built for Nigerian university students
+        </p>
         <h1
-          className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] text-gray-900 sm:text-6xl"
+          className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] text-gray-900 sm:text-6xl md:text-7xl"
           style={{ fontFamily: "var(--font-space-grotesk)" }}
         >
           {heroWords.map((w, i) => (
@@ -186,22 +186,22 @@ export default function Home() {
             </span>
           ))}
         </h1>
-        <p className="mt-8 max-w-xl text-lg leading-8 text-gray-600">
+        <p className="mt-8 max-w-xl text-lg leading-relaxed text-gray-600">
           A continuously updated model of where your money is heading, built from your real transactions —
           not a chatbot guessing your balance.
         </p>
-        <div className="mt-10 flex items-center gap-5">
+        <div className="mt-10 flex flex-wrap items-center gap-5">
           <Link
             href="#waitlist"
-            className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+            className="rounded-full bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 hover:shadow-emerald-500/30"
           >
             Join the waitlist
           </Link>
-          <span className="text-sm text-gray-400">Piloting at Obafemi Awolowo University</span>
+          <span className="text-sm font-medium text-gray-400">Piloting at OAU</span>
         </div>
       </section>
 
-      {/* Trajectory — the signature scroll sequence */}
+      {/* Trajectory */}
       <div ref={trajectorySectionRef} className={reducedMotion ? "bg-gray-50" : "relative h-[420vh] bg-gray-50"}>
         <div
           ref={pinRef}
@@ -218,7 +218,7 @@ export default function Home() {
               fill="none"
               stroke={GRAY_LINE}
               strokeOpacity={reducedMotion ? 0.6 : 1}
-              strokeWidth={3}
+              strokeWidth={4}
               strokeLinecap="round"
             />
             <path
@@ -226,7 +226,7 @@ export default function Home() {
               d="M 620 460 C 720 490, 820 520, 1000 560"
               fill="none"
               stroke={RED}
-              strokeWidth={2.5}
+              strokeWidth={3}
               strokeLinecap="round"
               strokeOpacity={reducedMotion ? 0 : 1}
             />
@@ -235,7 +235,7 @@ export default function Home() {
               d="M 620 460 C 740 470, 840 340, 1000 220"
               fill="none"
               stroke={EMERALD}
-              strokeWidth={3}
+              strokeWidth={4}
               strokeLinecap="round"
             />
           </svg>
@@ -249,69 +249,82 @@ export default function Home() {
                 }}
                 className={reducedMotion ? "mb-16 opacity-100" : "absolute inset-x-0"}
               >
-                <p className="text-sm font-medium" style={{ color: EMERALD_DARK }}>
+                <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold tracking-wide" style={{ color: EMERALD_DARK }}>
                   {beat.eyebrow}
+                </span>
+                <p className="mt-4 text-3xl font-medium leading-[1.3] text-gray-900 sm:text-4xl">
+                  {beat.line}
                 </p>
-                <p className="mt-3 text-2xl font-medium leading-snug text-gray-900 sm:text-3xl">{beat.line}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* How the Twin actually works — real content, real sequence */}
-      <section id="how-it-works" className="mx-auto max-w-3xl px-6 py-28 sm:px-10">
-        <p className="text-sm text-gray-500">How the Twin actually works</p>
-        <h2
-          className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          Five parts, in order — the math comes first, the language model comes last.
-        </h2>
+      {/* How the Twin actually works — REDESIGNED AS A GRID TO ADD BREATHING ROOM */}
+      <section id="how-it-works" className="mx-auto max-w-7xl px-6 py-32 sm:px-10 sm:py-40">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold tracking-wide text-emerald-600 uppercase">Architecture</p>
+          <h2
+            className="mt-4 text-3xl font-semibold leading-tight text-gray-900 sm:text-5xl"
+            style={{ fontFamily: "var(--font-space-grotesk)" }}
+          >
+            Math first. <br className="hidden sm:block" /> Language model last.
+          </h2>
+          <p className="mt-6 text-lg text-gray-600">
+            A deterministic pipeline that builds a picture of your financial future, step by step.
+          </p>
+        </div>
 
-        <ol className="mt-14 space-y-10">
+        <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {pipeline.map((step, i) => (
-            <li key={step.title} className="flex gap-6">
-              <span
-                className="mt-1 shrink-0 text-lg tabular-nums"
-                style={{ fontFamily: "var(--font-fira-code)", color: EMERALD_DARK }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
+            <div 
+              key={step.title} 
+              className={`flex flex-col justify-between rounded-3xl border border-gray-100 bg-gray-50/50 p-8 transition-shadow hover:shadow-md hover:shadow-gray-900/5 ${
+                i === 3 || i === 4 ? "sm:col-span-2 lg:col-span-1" : "" 
+                // Makes the grid flow nicely if there's an odd number of items
+              }`}
+            >
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{step.title}</h3>
-                <p className="mt-2 max-w-md text-gray-600">{step.body}</p>
+                <span
+                  className="mb-6 block text-3xl font-light tabular-nums"
+                  style={{ fontFamily: "var(--font-space-grotesk)", color: EMERALD }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
+                <p className="mt-3 text-base leading-relaxed text-gray-600">{step.body}</p>
               </div>
-            </li>
+            </div>
           ))}
-        </ol>
+        </div>
       </section>
 
-      {/* CTA */}
-      <section id="waitlist" className="bg-gray-50 px-6 py-24 text-center sm:px-10">
+      {/* CTA Section - Increased padding */}
+      <section id="waitlist" className="bg-gray-900 px-6 py-32 text-center sm:px-10 sm:py-40">
         <h2
-          className="mx-auto max-w-2xl text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl"
+          className="mx-auto max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-5xl"
           style={{ fontFamily: "var(--font-space-grotesk)" }}
         >
           See your trajectory before the month does.
         </h2>
-        <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/sign-up"
-            className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+            className="rounded-full bg-emerald-500 px-8 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400 hover:shadow-emerald-500/20"
           >
             Join the waitlist
           </Link>
           <Link
             href="/login"
-            className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400"
+            className="rounded-full border border-gray-700 bg-gray-800/50 px-8 py-4 text-sm font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white"
           >
-            Log in
+            Log in to account
           </Link>
         </div>
       </section>
 
-      <footer className="border-t border-gray-100 px-6 py-10 text-center text-sm text-gray-400 sm:px-10">
+      <footer className="bg-gray-900 px-6 py-12 text-center text-sm text-gray-500 sm:px-10">
         <p>Built by Team Zelta at Obafemi Awolowo University.</p>
       </footer>
     </div>
