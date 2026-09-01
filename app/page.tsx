@@ -1,361 +1,338 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  ShieldCheck,
-  TrendingUp,
-  Clock,
-  Briefcase,
-  BookOpen,
-  Sparkles,
-  Bolt,
-  CircleDot,
-  BarChart3,
-  ShieldAlert,
-} from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useSmoothScroll, usePrefersReducedMotion } from "@/hooks/useSmoothScroll";
 
-const headlineWords = [
-  "Give",
-  "every",
-  "Nigerian",
-  "student",
-  "confidence",
-  "in",
-  "their",
-  "next",
-  "financial",
-  "decision",
-  "—",
-  "before",
-  "the",
-  "money",
-  "moves,",
-  "not",
-  "after.",
-];
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-const featureCards = [
+// Matches the app's own tokens (see globals.css / dashboard components):
+// white/gray-50 surfaces, emerald as the primary accent, red for risk.
+const EMERALD = "#10b981";
+const EMERALD_DARK = "#047857";
+const RED = "#ef4444";
+const GRAY_LINE = "#d1d5db";
+
+const heroWords = ["Your", "finances", "already", "have", "a", "shape."];
+const heroWordsAccent = ["ZELTA", "shows", "it", "to", "you", "first."];
+
+const beats = [
   {
-    title: "Market Pulse",
-    description: "Live campus and market stress signals so you see pressure before you spend.",
-    icon: TrendingUp,
-    accent: "from-sky-400 to-cyan-500",
+    eyebrow: "Week one",
+    line: "Most months start fine.",
   },
   {
-    title: "Intent Check",
-    description: "Smart spend classification for necessity, impulse, and academic urgency.",
-    icon: ShieldCheck,
-    accent: "from-violet-500 to-fuchsia-500",
+    eyebrow: "Week three",
+    line: "The Twin sees the bend before you do — deterministic cash-flow math and statistical forecasting on your real transactions, never a language model guessing your numbers.",
   },
   {
-    title: "Academic Stress",
-    description: "Exam countdown and stress modifiers keep your decisions aligned with school life.",
-    icon: Clock,
-    accent: "from-emerald-400 to-lime-500",
+    eyebrow: "Before you spend",
+    line: "\u201CWhat happens if I buy this laptop now?\u201D Run it through the Future Lab and see the trajectory change before you commit.",
   },
   {
-    title: "The Gig Connection",
-    description: "Earn back runway with student-first micro opportunities and side hustle matches.",
-    icon: Briefcase,
-    accent: "from-amber-400 to-orange-500",
+    eyebrow: "When the gap is real",
+    line: "The Opportunity Engine matches the shortfall to legitimate, skill-fit gigs — insight that turns into action, not just an alert.",
   },
 ];
 
-const timelineSteps = [
+const pipeline = [
   {
-    title: "Payment Initiated",
-    description: "ZELTA sees the transaction before your account is charged.",
-    icon: ArrowRight,
+    title: "Deterministic engine",
+    body: "Cash-flow math on your actual balance and obligations. No language model touches the numbers.",
   },
   {
-    title: "Context Analysis",
-    description: "It factors in your allowance, exam schedule, and monthly rhythm.",
-    icon: BookOpen,
+    title: "Statistical forecasting",
+    body: "Trend and seasonality drawn from real transaction history, pulled in through Mono.",
   },
   {
-    title: "Risk Detection",
-    description: "Stress, bias, and runway risk are evaluated in real time.",
-    icon: ShieldAlert,
+    title: "Plain-language narration",
+    body: "An LLM explains what the math already found. It narrates the result — it doesn't invent it.",
   },
   {
-    title: "Survival Mode",
-    description: "If your runway is thin, ZELTA shifts recommendations to protect you.",
-    icon: Sparkles,
+    title: "Future Lab",
+    body: "Simulate a decision against your real trajectory before you make it.",
   },
   {
-    title: "Gig Opportunity Engine",
-    description: "Suggested side hustles surface automatically when the budget gaps appear.",
-    icon: Bolt,
-  },
-  {
-    title: "Guardian Recommendation",
-    description: "Full guidance is delivered with autonomy preserved — never a hard block.",
-    icon: CircleDot,
+    title: "Opportunity Engine",
+    body: "When a shortfall is coming, get matched to gigs that actually fit your skills and schedule.",
   },
 ];
-
-const variants = {
-  container: {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  },
-  word: {
-    hidden: { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0 },
-  },
-};
 
 export default function Home() {
+  const reducedMotion = usePrefersReducedMotion();
+  useSmoothScroll();
+
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  const trajectorySectionRef = useRef<HTMLDivElement | null>(null);
+  const pinRef = useRef<HTMLDivElement | null>(null);
+  const trunkPathRef = useRef<SVGPathElement | null>(null);
+  const branchDownRef = useRef<SVGPathElement | null>(null);
+  const branchUpRef = useRef<SVGPathElement | null>(null);
+  const beatRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  // Hero entrance — one orchestrated moment, word by word.
+  useEffect(() => {
+    const words = heroRef.current?.querySelectorAll("[data-word]");
+    if (!words || words.length === 0) return;
+
+    if (reducedMotion) {
+      gsap.set(words, { opacity: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      words,
+      { opacity: 0, y: 28 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.045,
+        delay: 0.2,
+      }
+    );
+  }, [reducedMotion]);
+
+  // The trajectory sequence — the one signature moment of the page.
+  useEffect(() => {
+    if (reducedMotion) return;
+    if (!trajectorySectionRef.current || !pinRef.current) return;
+    if (!trunkPathRef.current || !branchDownRef.current || !branchUpRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const trunk = trunkPathRef.current!;
+      const branchDown = branchDownRef.current!;
+      const branchUp = branchUpRef.current!;
+
+      const trunkLen = trunk.getTotalLength();
+      const downLen = branchDown.getTotalLength();
+      const upLen = branchUp.getTotalLength();
+
+      gsap.set(trunk, { strokeDasharray: trunkLen, strokeDashoffset: trunkLen });
+      gsap.set(branchDown, { strokeDasharray: downLen, strokeDashoffset: downLen, opacity: 0.5 });
+      gsap.set(branchUp, { strokeDasharray: upLen, strokeDashoffset: upLen });
+      gsap.set(beatRefs.current, { opacity: 0, y: 18 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: trajectorySectionRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.6,
+          pin: pinRef.current,
+        },
+      });
+
+      // Trunk draws across the first half of the sequence.
+      tl.to(trunk, { strokeDashoffset: 0, ease: "none", duration: 4 }, 0);
+      // Branches draw across the second half — the fork moment.
+      tl.to(branchDown, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
+      tl.to(branchUp, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
+      // Once the Opportunity Engine resolves it, the downward branch fades.
+      tl.to(branchDown, { opacity: 0.15, duration: 1 }, 6);
+      tl.to(branchUp, { opacity: 1, duration: 1 }, 6);
+
+      // Four narrative beats, each taking a two-unit slot on the same scrub.
+      beats.forEach((_, i) => {
+        const el = beatRefs.current[i];
+        if (!el) return;
+        const start = i * 2;
+        const isLast = i === beats.length - 1;
+
+        tl.to(el, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, start);
+        if (!isLast) {
+          tl.to(el, { opacity: 1, duration: 0.9 }, start + 0.5);
+          tl.to(el, { opacity: 0, y: -18, duration: 0.5, ease: "power2.in" }, start + 1.5);
+        } else {
+          tl.to(el, { opacity: 1, duration: 1.4 }, start + 0.5);
+        }
+      });
+    }, trajectorySectionRef);
+
+    return () => ctx.revert();
+  }, [reducedMotion]);
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <main className="relative overflow-hidden pb-20">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_55%)] blur-3xl" />
-        <div className="pointer-events-none absolute right-0 top-36 h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
-
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
-          <header className="flex items-center justify-between py-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/15 ring-1 ring-cyan-400/25">
-                <Sparkles className="h-5 w-5 text-cyan-300" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-white">Zelta</span>
-            </Link>
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="rounded-full border border-slate-700 bg-slate-900/80 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
-              >
-                Login
-              </Link>
-              <Link
-                href="/sign-up"
-                className="rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300"
-              >
-                Sign Up
-              </Link>
-            </div>
-          </header>
-
-          <section className="relative grid gap-10 pt-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-12">
-            <div className="space-y-10">
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={variants}
-                className="space-y-6"
-              >
-                <div className="flex flex-wrap gap-3 text-sm uppercase tracking-[0.32em] text-cyan-300/80">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1">
-                    <Sparkles className="h-4 w-4 text-cyan-300" /> AI Financial Guardian
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/80 px-3 py-1 text-slate-400">
-                    Built for Nigerian students
-                  </span>
-                </div>
-
-                <h1 className="max-w-4xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                  {headlineWords.map((word, index) => (
-                    <motion.span
-                      key={`${word}-${index}`}
-                      variants={variants.word}
-                      className="mr-2 inline-block whitespace-nowrap"
-                    >
-                      {word}
-                    </motion.span>
-                  ))}
-                </h1>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9, duration: 0.6 }}
-                  className="max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl"
-                >
-                  Zelta combines burner-proof spending intelligence with stress-aware student guidance so every allowance decision is wise, calm, and future-safe.
-                </motion.p>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.1, duration: 0.6 }}
-                  className="flex flex-col gap-4 sm:flex-row sm:items-center"
-                >
-                  <Link
-                    href="#waitlist"
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300"
-                  >
-                    Join Waitlist
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-
-                  <Link
-                    href="/sign-up"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-400/40 hover:bg-slate-800"
-                  >
-                    Create account
-                  </Link>
-
-                  <span className="text-sm text-slate-500">
-                    Launching with OPay Innovation Challenge 2026 support.
-                  </span>
-                </motion.div>
-              </motion.div>
-            </div>
-
-            <div className="relative isolate overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-900/90 p-8 shadow-2xl shadow-slate-950/40 ring-1 ring-white/5">
-              <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.16),transparent_50%)]" />
-              <div className="relative z-10 space-y-6">
-                <div className="flex items-center justify-between rounded-3xl bg-slate-950/50 p-4 ring-1 ring-slate-700/70">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Monthly Sapa Incidence</p>
-                    <p className="mt-2 text-3xl font-semibold text-white">72%</p>
-                  </div>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-800/70 text-cyan-300">
-                    <BarChart3 className="h-6 w-6" />
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center gap-4 rounded-[1.75rem] border border-slate-800/90 bg-slate-950/90 p-5 text-center">
-                  <div className="relative flex h-48 w-48 items-center justify-center rounded-full bg-slate-900/80 ring-2 ring-cyan-500/20">
-                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,rgba(16,185,129,0.85)_0%,rgba(16,185,129,0.14)_72%,rgba(56,189,248,0.2)_72%,rgba(56,189,248,0.12)_100%)]" />
-                    <div className="absolute inset-7 rounded-full bg-slate-950" />
-                    <div className="relative text-center">
-                      <p className="text-2xl font-bold text-white">72%</p>
-                      <p className="text-xs uppercase tracking-[0.28em] text-slate-500">at risk</p>
-                    </div>
-                  </div>
-                  <p className="max-w-sm text-sm leading-6 text-slate-400">
-                    More than two in three students feel pressure before month end. Zelta intercepts bad spend decisions while there is still runway.
-                  </p>
-
-                  <div className="flex w-full gap-3">
-                    <Link
-                      href="/login"
-                      className="flex-1 rounded-full border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-slate-600 hover:bg-slate-800"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/sign-up"
-                      className="flex-1 rounded-full bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
-                    >
-                      Sign Up
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-20 grid gap-10 lg:grid-cols-2">
-            <div className="space-y-6">
-              <div className="rounded-[2rem] border border-slate-800/80 bg-slate-900/90 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.45)]">
-                <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/70">The problem</p>
-                <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Monthly allowance runs out before the next transfer.</h2>
-                <p className="mt-4 text-base leading-7 text-slate-400">
-                  Most Nigerian university students get paid once per month. When bad spend decisions happen, stress rises and the rest of the month is a scramble.
-                </p>
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5">
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Old way</p>
-                    <p className="mt-3 text-lg font-semibold text-white">Warn after the money is gone</p>
-                  </div>
-                  <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5 backdrop-blur-sm">
-                    <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">Zelta way</p>
-                    <p className="mt-3 text-lg font-semibold text-cyan-100">Intercept before the transaction completes</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-slate-800/80 bg-slate-900/90 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.35)]">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">How Zelta works</p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {featureCards.map((card) => {
-                  const Icon = card.icon;
-                  return (
-                    <motion.div
-                      key={card.title}
-                      whileHover={{ y: -6 }}
-                      className="rounded-3xl border border-slate-800/90 bg-slate-950/75 p-6 transition-shadow shadow-[0_0_0_rgba(0,0,0,0)] hover:shadow-[0_15px_50px_rgba(56,189,248,0.15)]"
-                    >
-                      <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-gradient-to-br ${card.accent} text-white shadow-xl shadow-cyan-500/10`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-white">{card.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">{card.description}</p>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-20 rounded-[2rem] border border-slate-800/80 bg-slate-900/90 p-8 shadow-[0_35px_120px_rgba(15,23,42,0.35)]">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/80">Interception workflow</p>
-                <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">From payment intent to informed choice.</h2>
-              </div>
-              <div className="rounded-3xl border border-cyan-500/20 bg-slate-950/70 px-5 py-4 text-sm text-slate-300">
-                Fully informed choice — guided, never blocked. Autonomy preserved.
-              </div>
-            </div>
-
-            <div className="mt-8 space-y-6">
-              {timelineSteps.map((step, index) => {
-                const StepIcon = step.icon;
-                return (
-                  <motion.div
-                    key={step.title}
-                    initial={{ opacity: 0, x: -28 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.5, delay: index * 0.08 }}
-                    className="relative overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.25)]"
-                  >
-                    <div className="absolute right-5 top-5 h-14 w-14 rounded-3xl bg-cyan-500/10 ring-1 ring-cyan-400/30" />
-                    <div className="relative flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-400/20">
-                        <StepIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{step.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-400">{step.description}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </section>
-
-          <footer className="mt-20 border-t border-slate-800/70 py-8 text-center text-sm text-slate-500">
-            <div className="mb-4 flex items-center justify-center gap-3">
-              <Link
-                href="/login"
-                className="rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
-              >
-                Login
-              </Link>
-              <Link
-                href="/sign-up"
-                className="rounded-full bg-cyan-400 px-4 py-2 font-semibold text-slate-950 transition hover:bg-cyan-300"
-              >
-                Sign Up
-              </Link>
-            </div>
-            Team Zelta • OPay Innovation Challenge 2026
-          </footer>
+    <div className="min-h-screen bg-white text-gray-900">
+      {/* Nav */}
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
+        <Link
+          href="/"
+          className="text-lg font-semibold tracking-tight text-gray-900"
+          style={{ fontFamily: "var(--font-space-grotesk)" }}
+        >
+          ZELTA
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/login" className="text-sm text-gray-500 transition hover:text-gray-900">
+            Log in
+          </Link>
+          <Link
+            href="/sign-up"
+            className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400"
+          >
+            Get started
+          </Link>
         </div>
-      </main>
+      </header>
+
+      {/* Hero */}
+      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-24 pt-12 sm:px-10 sm:pt-20">
+        <p className="text-sm text-gray-500">AI Financial Twin, built for Nigerian university students</p>
+        <h1
+          className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] text-gray-900 sm:text-6xl"
+          style={{ fontFamily: "var(--font-space-grotesk)" }}
+        >
+          {heroWords.map((w, i) => (
+            <span key={`h1-${i}`} data-word className="mr-3 inline-block">
+              {w}
+            </span>
+          ))}
+          <br className="hidden sm:block" />
+          {heroWordsAccent.map((w, i) => (
+            <span
+              key={`h2-${i}`}
+              data-word
+              className="mr-3 inline-block"
+              style={{ color: i === 0 ? EMERALD_DARK : undefined }}
+            >
+              {w}
+            </span>
+          ))}
+        </h1>
+        <p className="mt-8 max-w-xl text-lg leading-8 text-gray-600">
+          A continuously updated model of where your money is heading, built from your real transactions —
+          not a chatbot guessing your balance.
+        </p>
+        <div className="mt-10 flex items-center gap-5">
+          <Link
+            href="#waitlist"
+            className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+          >
+            Join the waitlist
+          </Link>
+          <span className="text-sm text-gray-400">Piloting at Obafemi Awolowo University</span>
+        </div>
+      </section>
+
+      {/* Trajectory — the signature scroll sequence */}
+      <div ref={trajectorySectionRef} className={reducedMotion ? "bg-gray-50" : "relative h-[420vh] bg-gray-50"}>
+        <div
+          ref={pinRef}
+          className="relative flex h-screen flex-col justify-center overflow-hidden px-6 sm:px-10"
+        >
+          <svg
+            viewBox="0 0 1000 600"
+            preserveAspectRatio="xMidYMid meet"
+            className="pointer-events-none absolute inset-0 mx-auto h-full w-full max-w-6xl opacity-90"
+          >
+            <path
+              ref={trunkPathRef}
+              d="M 0 260 C 160 240, 260 300, 340 330 C 460 370, 520 430, 620 460"
+              fill="none"
+              stroke={GRAY_LINE}
+              strokeOpacity={reducedMotion ? 0.6 : 1}
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+            <path
+              ref={branchDownRef}
+              d="M 620 460 C 720 490, 820 520, 1000 560"
+              fill="none"
+              stroke={RED}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeOpacity={reducedMotion ? 0 : 1}
+            />
+            <path
+              ref={branchUpRef}
+              d="M 620 460 C 740 470, 840 340, 1000 220"
+              fill="none"
+              stroke={EMERALD}
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <div className="relative z-10 mx-auto w-full max-w-xl">
+            {beats.map((beat, i) => (
+              <div
+                key={beat.eyebrow}
+                ref={(el) => {
+                  beatRefs.current[i] = el;
+                }}
+                className={reducedMotion ? "mb-16 opacity-100" : "absolute inset-x-0"}
+              >
+                <p className="text-sm font-medium" style={{ color: EMERALD_DARK }}>
+                  {beat.eyebrow}
+                </p>
+                <p className="mt-3 text-2xl font-medium leading-snug text-gray-900 sm:text-3xl">{beat.line}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* How the Twin actually works — real content, real sequence */}
+      <section className="mx-auto max-w-3xl px-6 py-28 sm:px-10">
+        <p className="text-sm text-gray-500">How the Twin actually works</p>
+        <h2
+          className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl"
+          style={{ fontFamily: "var(--font-space-grotesk)" }}
+        >
+          Five parts, in order — the math comes first, the language model comes last.
+        </h2>
+
+        <ol className="mt-14 space-y-10">
+          {pipeline.map((step, i) => (
+            <li key={step.title} className="flex gap-6">
+              <span
+                className="mt-1 shrink-0 text-lg tabular-nums"
+                style={{ fontFamily: "var(--font-fira-code)", color: EMERALD_DARK }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">{step.title}</h3>
+                <p className="mt-2 max-w-md text-gray-600">{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* CTA */}
+      <section id="waitlist" className="bg-gray-50 px-6 py-24 text-center sm:px-10">
+        <h2
+          className="mx-auto max-w-2xl text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl"
+          style={{ fontFamily: "var(--font-space-grotesk)" }}
+        >
+          See your trajectory before the month does.
+        </h2>
+        <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <Link
+            href="/sign-up"
+            className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+          >
+            Join the waitlist
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400"
+          >
+            Log in
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-gray-100 px-6 py-10 text-center text-sm text-gray-400 sm:px-10">
+        <p>Built by Team Zelta at Obafemi Awolowo University.</p>
+      </footer>
     </div>
   );
 }
