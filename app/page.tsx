@@ -5,6 +5,7 @@ import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSmoothScroll, usePrefersReducedMotion } from "@/hooks/useSmoothScroll";
+import FloatingNav from "@/components/FloatingNav";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -158,31 +159,11 @@ export default function Home() {
   }, [reducedMotion]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      {/* Nav */}
-      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
-        <Link
-          href="/"
-          className="text-lg font-semibold tracking-tight text-gray-900"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          ZELTA
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link href="/login" className="text-sm text-gray-500 transition hover:text-gray-900">
-            Log in
-          </Link>
-          <Link
-            href="/sign-up"
-            className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400"
-          >
-            Get started
-          </Link>
-        </div>
-      </header>
+    <div id="top" className="min-h-screen bg-white text-gray-900">
+      <FloatingNav />
 
       {/* Hero */}
-      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-24 pt-12 sm:px-10 sm:pt-20">
+      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-24 pt-28 sm:px-10 sm:pt-32">
         <p className="text-sm text-gray-500">AI Financial Twin, built for Nigerian university students</p>
         <h1
           className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] text-gray-900 sm:text-6xl"
@@ -279,7 +260,7 @@ export default function Home() {
       </div>
 
       {/* How the Twin actually works — real content, real sequence */}
-      <section className="mx-auto max-w-3xl px-6 py-28 sm:px-10">
+      <section id="how-it-works" className="mx-auto max-w-3xl px-6 py-28 sm:px-10">
         <p className="text-sm text-gray-500">How the Twin actually works</p>
         <h2
           className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl"
