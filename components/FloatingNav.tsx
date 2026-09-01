@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -14,31 +14,22 @@ const NAV_ITEMS = [
 export default function FloatingNav() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const lastScrollY = useRef(0);
 
-  // Hide on scroll down, reveal on scroll up — the bar gets out of the
-  // way while reading, and comes back the moment intent changes.
+  // Simplified to only track if the user has scrolled past 8px 
+  // to toggle the drop shadow effect.
   useEffect(() => {
     function onScroll() {
-      const y = window.scrollY;
-      const goingDown = y > lastScrollY.current && y > 80;
-      setVisible(!goingDown || mobileOpen);
-      setScrolled(y > 8);
-      lastScrollY.current = y;
+      setScrolled(window.scrollY > 8);
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [mobileOpen]);
+  }, []);
 
   return (
     <motion.div
       initial={{ y: -40, opacity: 0 }}
-      animate={{
-        y: visible ? 0 : -96,
-        opacity: 1,
-      }}
+      animate={{ y: 0, opacity: 1 }} // Always stays at y: 0 (fixed)
       transition={{ type: "spring", stiffness: 320, damping: 30 }}
       className="fixed inset-x-0 top-4 z-50 flex justify-center px-4"
     >
@@ -90,7 +81,7 @@ export default function FloatingNav() {
           </button>
         </nav>
 
-        {/* CTA — deliberately separate from wayfinding, so it never competes with "where am I" */}
+        {/* CTA */}
         <Link
           href="/sign-up"
           className="hidden shrink-0 rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 transition hover:bg-emerald-400 sm:block"
