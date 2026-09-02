@@ -12,8 +12,8 @@ export default function Page() {
     <BehavioralDataProvider>
       <div>
         <PageHeader
-          title="Behavioral"
-          description="Simple coaching to help you make calmer money decisions"
+          title="Patterns"
+          description="Part of what your Twin models — how habits and context shape the forecast"
         />
 
         <Active />
