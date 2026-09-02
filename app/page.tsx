@@ -6,6 +6,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSmoothScroll, usePrefersReducedMotion } from "@/hooks/useSmoothScroll";
 import FloatingNav from "@/components/FloatingNav";
+import ScrollProgress from "@/components/ScrollProgress";
+import FutureLabPreview from "@/components/FutureLabPreview";
+import MagneticButton from "@/components/MagneticButton";
 
 // Matches the app's own tokens
 const EMERALD = "#10b981";
@@ -16,7 +19,6 @@ const GRAY_LINE = "#d1d5db";
 const heroWords = ["Your", "finances", "already", "have", "a", "shape."];
 const heroWordsAccent = ["ZELTA", "shows", "it", "to", "you", "first."];
 
-// EDITED: Copy is now punchier and easier to read during a scroll animation.
 const beats = [
   {
     eyebrow: "Week one",
@@ -24,11 +26,11 @@ const beats = [
   },
   {
     eyebrow: "Week three",
-    line: "The Twin sees the bend before you do. Deterministic math catches the dip—not a guessing language model.",
+    line: "The Twin sees the bend before you do. Deterministic math catches the dip\u2014not a guessing language model.",
   },
   {
     eyebrow: "Before you spend",
-    line: "“What if I buy this laptop now?” Run it through the Future Lab and see the trajectory change before you commit.",
+    line: "\u201CWhat if I buy this laptop now?\u201D Run it through the Future Lab and see the trajectory change before you commit.",
   },
   {
     eyebrow: "When the gap is real",
@@ -36,7 +38,6 @@ const beats = [
   },
 ];
 
-// EDITED: These will now be rendered as beautiful, spacious cards.
 const pipeline = [
   {
     title: "Deterministic engine",
@@ -48,7 +49,7 @@ const pipeline = [
   },
   {
     title: "Plain-language narration",
-    body: "An LLM explains what the math already found. It narrates the result—it doesn't invent it.",
+    body: "An LLM explains what the math already found. It narrates the result\u2014it doesn't invent it.",
   },
   {
     title: "Future Lab",
@@ -72,12 +73,10 @@ export default function Home() {
   const branchUpRef = useRef<SVGPathElement | null>(null);
   const beatRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // Safe GSAP Registration for Next.js
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
   }, []);
 
-  // Hero entrance
   useEffect(() => {
     const words = heroRef.current?.querySelectorAll("[data-word]");
     if (!words || words.length === 0) return;
@@ -101,7 +100,6 @@ export default function Home() {
     );
   }, [reducedMotion]);
 
-  // The trajectory sequence
   useEffect(() => {
     if (reducedMotion) return;
     if (!trajectorySectionRef.current || !pinRef.current) return;
@@ -158,11 +156,11 @@ export default function Home() {
 
   return (
     <div id="top" className="min-h-screen bg-white text-gray-900">
+      <ScrollProgress />
       <FloatingNav />
 
-      {/* Hero: Added a bit more bottom padding */}
       <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-32 pt-28 sm:px-10 sm:pt-40">
-        <p className="text-sm font-medium tracking-wide text-gray-500 uppercase">
+        <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
           Built for Nigerian university students
         </p>
         <h1
@@ -187,21 +185,20 @@ export default function Home() {
           ))}
         </h1>
         <p className="mt-8 max-w-xl text-lg leading-relaxed text-gray-600">
-          A continuously updated model of where your money is heading, built from your real transactions —
-          not a chatbot guessing your balance.
+          A continuously updated model of where your money is heading, built from your real transactions
+          \u2014 not a chatbot guessing your balance.
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-5">
-          <Link
+          <MagneticButton
             href="#waitlist"
             className="rounded-full bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 hover:shadow-emerald-500/30"
           >
             Join the waitlist
-          </Link>
+          </MagneticButton>
           <span className="text-sm font-medium text-gray-400">Piloting at OAU</span>
         </div>
       </section>
 
-      {/* Trajectory */}
       <div ref={trajectorySectionRef} className={reducedMotion ? "bg-gray-50" : "relative h-[420vh] bg-gray-50"}>
         <div
           ref={pinRef}
@@ -249,7 +246,10 @@ export default function Home() {
                 }}
                 className={reducedMotion ? "mb-16 opacity-100" : "absolute inset-x-0"}
               >
-                <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold tracking-wide" style={{ color: EMERALD_DARK }}>
+                <span
+                  className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold tracking-wide"
+                  style={{ color: EMERALD_DARK }}
+                >
                   {beat.eyebrow}
                 </span>
                 <p className="mt-4 text-3xl font-medium leading-[1.3] text-gray-900 sm:text-4xl">
@@ -261,10 +261,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* How the Twin actually works — REDESIGNED AS A GRID TO ADD BREATHING ROOM */}
+      {/* Try it yourself \u2014 direct manipulation, immediate feedback */}
+      <section className="mx-auto max-w-3xl px-6 py-24 sm:px-10">
+        <FutureLabPreview />
+      </section>
+
       <section id="how-it-works" className="mx-auto max-w-7xl px-6 py-32 sm:px-10 sm:py-40">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold tracking-wide text-emerald-600 uppercase">Architecture</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Architecture</p>
           <h2
             className="mt-4 text-3xl font-semibold leading-tight text-gray-900 sm:text-5xl"
             style={{ fontFamily: "var(--font-space-grotesk)" }}
@@ -278,11 +282,10 @@ export default function Home() {
 
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {pipeline.map((step, i) => (
-            <div 
-              key={step.title} 
+            <div
+              key={step.title}
               className={`flex flex-col justify-between rounded-3xl border border-gray-100 bg-gray-50/50 p-8 transition-shadow hover:shadow-md hover:shadow-gray-900/5 ${
-                i === 3 || i === 4 ? "sm:col-span-2 lg:col-span-1" : "" 
-                // Makes the grid flow nicely if there's an odd number of items
+                i === 3 || i === 4 ? "sm:col-span-2 lg:col-span-1" : ""
               }`}
             >
               <div>
@@ -300,7 +303,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Increased padding */}
       <section id="waitlist" className="bg-gray-900 px-6 py-32 text-center sm:px-10 sm:py-40">
         <h2
           className="mx-auto max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-5xl"
@@ -309,12 +311,12 @@ export default function Home() {
           See your trajectory before the month does.
         </h2>
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Link
+          <MagneticButton
             href="/sign-up"
             className="rounded-full bg-emerald-500 px-8 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400 hover:shadow-emerald-500/20"
           >
             Join the waitlist
-          </Link>
+          </MagneticButton>
           <Link
             href="/login"
             className="rounded-full border border-gray-700 bg-gray-800/50 px-8 py-4 text-sm font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white"
