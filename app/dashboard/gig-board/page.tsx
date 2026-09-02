@@ -346,8 +346,8 @@ export default function GigBoardPage() {
   return (
     <div className="px-3 pb-10 lg:px-0">
       <PageHeader
-        title="Campus Gig Board"
-        description="Find side hustles to extend your financial runway"
+        title="Opportunity Engine"
+        description="Legitimate, skill-fit gigs matched to close a shortfall your Twin sees coming"
       />
 
       {/* Stats row */}
