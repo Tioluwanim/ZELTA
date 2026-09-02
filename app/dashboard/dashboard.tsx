@@ -89,7 +89,7 @@ function Dashboard() {
         {/* ── Header ── */}
         <PageHeader
           title={`${greeting}, ${displayName}`}
-          description="here's your financial intelligence for today"
+          description="here's what your Twin sees for today"
         />
 
         {/* ── ZELTA Intercept Modal ── */}
@@ -158,8 +158,8 @@ function Dashboard() {
         <div className="grid grid-cols-3 gap-2">
           {[
             { href: "/dashboard/wallet",      icon: Wallet,    label: "My Money",  color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-            { href: "/dashboard/behavioral",  icon: Brain,     label: "My Mindset",color: "bg-violet-50 text-violet-700 border-violet-200" },
-            { href: "/dashboard/simulations", icon: TrendingUp,label: "What If?",  color: "bg-orange-50 text-orange-700 border-orange-200" },
+            { href: "/dashboard/behavioral",  icon: Brain,     label: "Patterns",  color: "bg-violet-50 text-violet-700 border-violet-200" },
+            { href: "/dashboard/simulations", icon: TrendingUp,label: "Future Lab",color: "bg-orange-50 text-orange-700 border-orange-200" },
           ].map(({ href, icon: Icon, label, color }) => (
             <Link
               key={href}
@@ -176,17 +176,17 @@ function Dashboard() {
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="h-4 w-4 text-emerald-600" />
-            <p className="text-sm font-semibold text-emerald-700">Confused? Ask ZELTA anything.</p>
+            <p className="text-sm font-semibold text-emerald-700">Confused? Ask your Twin.</p>
           </div>
           <p className="text-xs text-emerald-600/80 mb-3">
-            Tap the green chat button below — or open the full co-pilot.
+            It explains what the math already found — tap the green chat button, or open the full view.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link
               href="/dashboard/co-pilot"
               className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition"
             >
-              Open Co-pilot
+              Ask Your Twin
             </Link>
             <span className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-700">
               Try: &quot;Will my money last till month end?&quot;
@@ -219,7 +219,7 @@ function Dashboard() {
             onClick={() => setDetailsOpen(v => !v)}
             className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
           >
-            <span>Your Behavioral Details</span>
+            <span>Your Patterns</span>
             {detailsOpen
               ? <ChevronUp className="h-4 w-4 text-gray-400" />
               : <ChevronDown className="h-4 w-4 text-gray-400" />}
