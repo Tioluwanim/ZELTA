@@ -77,8 +77,8 @@ function SimulationsPage() {
   return (
     <div className="px-3 lg:px-0">
       <PageHeader
-        title="What If?"
-        description="Try your idea first, then decide with confidence"
+        title="Future Lab"
+        description="Simulate a decision against your real trajectory before you make it"
       />
 
       {/* Survival banner from AI pipeline */}
