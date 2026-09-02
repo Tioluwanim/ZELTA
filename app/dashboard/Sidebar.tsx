@@ -14,10 +14,10 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { icon: Home,          label: "Home",       href: "/dashboard" },
   { icon: Wallet,        label: "Wallet",     href: "/dashboard/wallet" },
-  { icon: Brain,         label: "Behavioral", href: "/dashboard/behavioral" },
-  { icon: Sparkles,      label: "Simulation", href: "/dashboard/simulations" },
-  { icon: Briefcase,     label: "Gig Board",  href: "/dashboard/gig-board" },
-  { icon: MessageSquare, label: "Co-pilot",   href: "/dashboard/co-pilot" },
+  { icon: Brain,         label: "Patterns",   href: "/dashboard/behavioral" },
+  { icon: Sparkles,      label: "Future Lab", href: "/dashboard/simulations" },
+  { icon: Briefcase,     label: "Opportunities", href: "/dashboard/gig-board" },
+  { icon: MessageSquare, label: "Ask Twin",   href: "/dashboard/co-pilot" },
   { icon: History,       label: "History",    href: "/dashboard/history" },
 ];
 
@@ -35,9 +35,14 @@ export default function Sidebar() {
       <aside className="hidden lg:flex flex-col h-full px-4 py-6 gap-6">
         {/* Brand */}
         <div className="px-2">
-          <p className="text-xl font-bold text-[#10b981] tracking-tight">ZELTA</p>
+          <p
+            className="text-xl font-bold text-[#10b981] tracking-tight"
+            style={{ fontFamily: "var(--font-space-grotesk)" }}
+          >
+            ZELTA
+          </p>
           <p className="text-xs text-slate-400 mt-0.5 font-medium tracking-wide uppercase">
-            Financial Intelligence
+            Your Financial Twin
           </p>
         </div>
 
