@@ -322,7 +322,7 @@ export default function CopilotPage() {
 
   return (
     <div className="px-3 lg:px-0 pb-10">
-      <PageHeader title="ZELTA Co-pilot" description="Confused? Ask ZELTA anything." />
+      <PageHeader title="Ask Your Twin" description="Plain-language answers about what the math already found — it explains, it never guesses" />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
 
