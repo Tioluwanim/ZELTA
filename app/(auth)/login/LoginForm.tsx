@@ -26,7 +26,7 @@ export default function LoginForm({
 
   return (
     <section className="mx-auto flex w-full flex-col items-center justify-center rounded-xl p-6 pt-2 md:w-[50%] lg:w-[40%] xl:w-[25%]">
-      <h1 className="mb-4 text-center text-[22px] font-semibold">
+      <h1 className="mb-4 text-center text-[22px] font-semibold" style={{ fontFamily: "var(--font-space-grotesk)" }}>
         Welcome Back
       </h1>
 
@@ -73,7 +73,7 @@ export default function LoginForm({
         <Button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-[#10b981] px-6 py-2 text-white hover:bg-[#0b825a] disabled:opacity-50"
+          className="w-full rounded-full bg-[#10b981] px-6 py-2 text-white hover:bg-[#0b825a] disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Continue"}
         </Button>
