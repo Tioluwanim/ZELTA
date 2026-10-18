@@ -72,7 +72,11 @@ app.include_router(simulation.router)
 app.include_router(copilot.router)
 app.include_router(portfolio.router)
 app.include_router(profile.router)
-app.include_router(dev_auth.router)
+# /dev/* mints Firebase login tokens for any uid with no authentication. It is mounted ONLY when
+# APP_ENV is exactly "local" (never by default, never in "development"/"production").
+if settings.app_env.strip().lower() == "local":
+    logger.warning("APP_ENV=local: unauthenticated /dev token routes are ENABLED. Never deploy like this.")
+    app.include_router(dev_auth.router)
 # ── New integrations ───────────────────────────────────────
 app.include_router(mono.router)    # Simulated Mono Connect
 app.include_router(squad.router)   # Simulated Squad Co

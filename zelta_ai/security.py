@@ -1,8 +1,10 @@
+import hmac
 import os
 from fastapi import Header, HTTPException
 
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
-DEBUG = os.getenv("DEBUG", "true").lower() == "true"
+# Secure by default: the auth bypass exists only when DEBUG is explicitly set to "true".
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 
 def verify_internal_request(x_api_key: str = Header(None)):
@@ -23,7 +25,7 @@ def verify_internal_request(x_api_key: str = Header(None)):
             detail="INTERNAL_API_KEY not configured on server."
         )
 
-    if x_api_key != INTERNAL_API_KEY:
+    if not x_api_key or not hmac.compare_digest(x_api_key.encode(), INTERNAL_API_KEY.encode()):
         raise HTTPException(
             status_code=401,
             detail="Unauthorized. Only the ZELTA backend can call this service."

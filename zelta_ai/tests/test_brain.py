@@ -3,13 +3,14 @@
 # Tests every endpoint of the ZELTA AI Brain
 
 import asyncio
+import os
 import httpx
 import json
 import time
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-BRAIN_URL    = "https://zelta-ai-990094999937.us-central1.run.app"
-INTERNAL_KEY = "e1826fa178bcbca3a4edf24c383586a1028555fefc67542483ace882ed8c5c41"
+BRAIN_URL    = os.getenv("BRAIN_URL", "http://localhost:8080")
+INTERNAL_KEY = os.getenv("INTERNAL_API_KEY", "")
 
 HEADERS = {
     "Content-Type": "application/json",

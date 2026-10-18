@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router, public_router
 from brain.bayse.stress_signal import monitor
 
-DEBUG = os.getenv("DEBUG", "true").lower() == "true"
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"   # secure by default (was "true")
 PORT = int(os.getenv("PORT", "8080"))
 
 
