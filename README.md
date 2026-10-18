@@ -81,6 +81,10 @@ flowchart LR
 
 Implemented: consent lifecycle and scope checks, fail-closed withdrawal, `SecretStr`, redaction of secrets/account numbers/financial fields, constant-time webhook secret and HMAC checks, redacted audit log, provider response validation, tool permissions. **Still required** before real bank data: live Mono verification, encrypted persistent storage, webhook replay protection and routes, rate limiting, regulatory review (CBN open-banking rules, NDPA 2023). Full table: [`zelta_ai/docs/SECURITY.md`](zelta_ai/docs/SECURITY.md). This is not a compliance claim.
 
+**Identity assurance (`assurance/`).** Not regulated KYC (ZELTA does not hold money): a proportionate trust layer. It compares a claim against things that already exist (the name the bank holds vs the name the user gave; a verified institution email; how lived-in the account history is) and stacks independent evidence families into a level (`NONE` to `STRONG`). One contradiction caps the level; stale evidence is ignored; higher levels unlock more tool scopes (step-up), and no level unlocks money movement. An online registry check is only an interface (`RegistryChecker`); none is connected. Thresholds are proposals. Do not store BVN/NIN: keep only the verdict. Details: `zelta_ai/assurance/`.
+
+Testing the platform: see `SECURITY.md` (disclosure policy) and `zelta_ai/docs/PENTEST.md` (how to engage an ethical hacker safely). Regulatory map: `zelta_ai/docs/REGULATORY_MATRIX.md`.
+
 ### Subsystem C: Opportunity Engine
 
 Separate from the twin; it only reads a `TwinSnapshot`. Categories: **Earn** (raise income), **Save** (cut avoidable spend), **Grow** (longer-term, hidden until the emergency cushion is covered). An `Opportunity` must declare provenance: `sourced` (needs a source), `estimate` (needs a confidence) or `ai_suggestion` (cannot carry a benefit figure). The baseline engine **generates nothing**: it filters expired items and orders a supplied catalogue with transparent rules. It never moves money. Replace `rank` when research justifies an algorithm.
@@ -104,6 +108,7 @@ zelta_ai/                       AI service
   engines/                      burn, runway/forecast/what-if, cushion, affordability                  (new)
   providers/                    FinancialProvider, MockProvider, MonoAdapter, context signals          (new)
   openbanking/                  consent, secrets, redaction, webhook auth, audit                       (new)
+  assurance/                    layered identity assurance + step-up scope gating                      (new)
   financial_twin/               TwinSnapshot + FinancialTwinService                                    (new)
   opportunities/                Opportunity model + baseline engine                                    (new)
   agent_tools/                  tool registry and the default tools                                    (new)

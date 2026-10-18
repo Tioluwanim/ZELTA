@@ -15,6 +15,7 @@ engineering controls at the boundary; compliance is a separate process.
 | Provider response validation and normalised errors (auth, rate limit, unavailable, invalid response, not configured) | `providers/base.py`, `providers/mono.py` | implemented for the mapping layer |
 | Access audit with redacted detail | `openbanking/audit.py` | implemented, in-memory only |
 | Agent tool permissions, strict argument validation, no money-moving tool exists | `agent_tools/registry.py` | implemented |
+| Layered identity assurance with step-up gating of tool scopes (stacked evidence, contradiction cap) | `assurance/` | implemented as pure logic; not wired to real signals; no online registry connected |
 | Internal-key check is constant-time and secure-by-default | `security.py` | implemented (Day 1) |
 | `/dev` token routes closed unless `APP_ENV=local` | `zelta_backend/main.py` | implemented (Day 1) |
 
