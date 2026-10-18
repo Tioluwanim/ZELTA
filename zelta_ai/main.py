@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router, public_router
+from api.twin import router as twin_router
 from brain.bayse.stress_signal import monitor
 
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"   # secure by default (was "true")
@@ -81,6 +82,7 @@ app.add_middleware(
 # ── ROUTES ────────────────────────────────────────────────────────────────────
 app.include_router(router)         # /brain/*
 app.include_router(public_router)  # /api/*
+app.include_router(twin_router)    # /brain/v1/twin (unconfigured data source => 503 until wired)
 
 
 # ── ROOT ──────────────────────────────────────────────────────────────────────

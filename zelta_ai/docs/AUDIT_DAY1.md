@@ -30,3 +30,10 @@ python-multipart 0.0.32, protobuf 7.x and `pip-audit` reports no known vulnerabi
 multi-stage on `python:3.11-slim` (no gcc/kernel headers in the runtime image), runs as a non-root user, and upgrades OS
 packages at build. The app was imported and its tests run on that dependency set, but the endpoints were not exercised
 against Firebase. `zelta_ai/Dockerfile` and requirements were **not** changed (torch/transformers build not verified here).
+
+## Day 5 note: where the endpoint lives
+The guide says `/api/twin` with the end-user token. The engines are in `zelta_ai`, which is a separate deployment from
+`zelta_backend` (Firebase user auth), so the route is `GET /brain/v1/twin` on the AI service, protected by the existing
+internal key, with the backend expected to assert the user in `x-user-id`. End-user token verification stays in the
+backend; the backend proxy call is not written yet. The repository defaults to "unconfigured" (HTTP 503), so nothing
+fake is served.

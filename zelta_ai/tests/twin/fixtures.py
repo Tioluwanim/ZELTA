@@ -2,7 +2,7 @@
 from datetime import date, datetime, timedelta
 
 from domain.clock import LAGOS
-from domain.events import Account
+from domain.events import Account, RawTransaction
 from domain.money import Money
 from engines.runway import IncomeStream, Obligation
 
@@ -34,3 +34,15 @@ def allowance():
 
 BURN_PER_DAY_KOBO = 214800     # blended burn that the guide's worked example uses (2,148 naira/day)
 ESSENTIAL_PER_DAY_KOBO = 93571
+
+
+def history_txns(days=28, kobo=214800, account="acc_opay"):
+    """Each day: essential spend (food) of 93,571 kobo plus discretionary ('social') making the day total `kobo`."""
+    rows = []
+    for i in range(1, days + 1):
+        at = AS_OF - timedelta(days=i)
+        rows.append(RawTransaction("mock", account, Money(-ESSENTIAL_PER_DAY_KOBO), at, provider_ref=f"e{i}",
+                                   description="essentials", category="food"))
+        rows.append(RawTransaction("mock", account, Money(-(kobo - ESSENTIAL_PER_DAY_KOBO)), at, provider_ref=f"d{i}",
+                                   description="other", category="social"))
+    return rows

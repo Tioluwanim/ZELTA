@@ -158,12 +158,13 @@ Needs `pytest`, `fastapi`, `httpx`, `pydantic`; the backend test also needs the 
 | 2 | Money, time, event type | `domain/` with tests (no floats; Lagos date; naive datetimes rejected) |
 | 3 | Ledger rules | `ledger/` dedupe, pending-to-posted, reversals, own transfers, stale policy; Tola total = 53,500 |
 | 4 | Burn and runway with dated bills | `engines/`; Tola runway 16.99 days (naive 24.9) |
+| 5 | First thin endpoint | `GET /brain/v1/twin` (`api/twin.py`): typed `TwinOut`, `{code, message}` errors only, internal-key auth, 503 until a data source is wired |
 
 Plus the architecture groundwork: providers, security boundary, twin service, opportunity contract, agents and tools. The Tola numbers come from a synthetic fixture, not real users.
 
 ## Limitations and assumptions
 
-* Not wired into HTTP routes; legacy `brain/` logic still serves requests and still uses floats and the system clock.
+* The only HTTP route on the new core is `GET /brain/v1/twin`, which returns 503 until a real `TwinRepository` is configured (no fake data is served); legacy `brain/` logic still serves requests and still uses floats and the system clock.
 * Mono is mapping-only and unverified. No live bank data has ever flowed through this code.
 * Constants (blend weights, thresholds, scenario multipliers) are **proposed**; the forecasting experiments behind them were on synthetic data with one seed.
 * "Essential" spend uses a caller-supplied category list; category quality is unresolved.
@@ -173,7 +174,7 @@ Plus the architecture groundwork: providers, security boundary, twin service, op
 ## Roadmap
 
 1. Rotate the leaked internal key (removed from `test_brain.py`, but still in git history).
-2. Wire `FinancialTwinService` behind a new authenticated route; migrate the wallet routes to `Money` and one transaction store.
+2. Implement a real `TwinRepository` (Firestore/Mono) and have `zelta_backend` call `/brain/v1/twin` for the signed-in user; migrate the wallet routes to `Money` and one transaction store.
 3. Get Mono sandbox credentials; verify paths, fields, pending states, reauth and webhooks; only then flip `is_live`.
 4. Persist consent and audit; add webhook route with replay protection.
 5. Evaluate forecasting and burn methods on real (consented) data; replace proposed constants with measured ones.

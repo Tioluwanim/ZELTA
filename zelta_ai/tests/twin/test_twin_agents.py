@@ -17,19 +17,7 @@ from providers.base import Unavailable
 from providers.context import BayseStressContext, ContextSignal
 from providers.mock import MockProvider
 from tests.twin import fixtures as fx
-from tests.twin.fixtures import AS_OF, N
-
-
-def history_txns(days=28, kobo=214800, account="acc_opay"):
-    """Each day: essential spend (food) of 93,571 kobo plus discretionary ('social') making the day total `kobo`."""
-    rows = []
-    for i in range(1, days + 1):
-        at = AS_OF - timedelta(days=i)
-        rows.append(RawTransaction("mock", account, Money(-fx.ESSENTIAL_PER_DAY_KOBO), at, provider_ref=f"e{i}",
-                                   description="essentials", category="food"))
-        rows.append(RawTransaction("mock", account, Money(-(kobo - fx.ESSENTIAL_PER_DAY_KOBO)), at, provider_ref=f"d{i}",
-                                   description="other", category="social"))
-    return rows
+from tests.twin.fixtures import AS_OF, N, history_txns
 
 
 def build(provider=None, **kw):
