@@ -18,7 +18,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from agent_tools.registry import ToolContext, ToolRegistry, ToolResult
 from openbanking.redact import redact
-from .llm import LLMClient, LLMUnavailable, NullLLM
+from llm.base import LLMNotConfigured, LLMProvider, LLMRequest, LLMUnavailable
+from llm.numbers import numbers_supported
+from .conversation import ConversationState, ConversationStore
+from .llm import LLMClient, NullLLM
+from .planner import Plan, RulePlanner
 
 SYSTEM_PROMPT = (
     "You explain results computed by ZELTA's deterministic financial engines to a Nigerian student. "
@@ -45,6 +49,9 @@ class AgentResponse:
     used_llm: bool
     warnings: Tuple[str, ...]
     needs_user_input: Optional[str] = None
+    intents: Tuple[str, ...] = ()
+    suggestions: Tuple[str, ...] = ()
+    pending_text: str = ""
 
 
 def parse_amount(text: str) -> Optional[str]:
@@ -81,36 +88,6 @@ def route(text: str) -> Tuple[str, List[Tuple[str, Dict[str, Any]]]]:
     if re.search(r"\b(summary|balance|how much|status|overview)\b", t):
         return ("summary", [("get_financial_summary", {})])
     return ("clarify", [])
-
-
-def _flat_numbers(obj: Any, out: set) -> None:
-    if isinstance(obj, bool) or obj is None:
-        return
-    if isinstance(obj, (int, float)):
-        out.update({_norm(str(obj)), _norm(str(round(obj, 0))), _norm(str(round(obj, 1)))})
-    elif isinstance(obj, str):
-        for tok in re.findall(r"\d[\d,]*(?:\.\d+)?", obj):
-            out.add(_norm(tok))
-    elif isinstance(obj, dict):
-        for v in obj.values():
-            _flat_numbers(v, out)
-    elif isinstance(obj, (list, tuple)):
-        for v in obj:
-            _flat_numbers(v, out)
-
-
-def _norm(tok: str) -> str:
-    t = tok.replace(",", "")
-    if "." in t:
-        t = t.rstrip("0").rstrip(".")
-    return t or "0"
-
-
-def numbers_supported(llm_text: str, facts: Any, user_text: str = "") -> bool:
-    allowed: set = set()
-    _flat_numbers(facts, allowed)
-    _flat_numbers(user_text, allowed)
-    return all(_norm(tok) in allowed for tok in re.findall(r"\d[\d,]*(?:\.\d+)?", llm_text))
 
 
 def _template(intent: str, facts: Dict[str, Any]) -> str:
@@ -155,36 +132,83 @@ def _template(intent: str, facts: Dict[str, Any]) -> str:
     return "I need a bit more detail to help with that."
 
 
+SUGGESTIONS = {
+    "summary": ("How long will my money last?", "What is a safe emergency cushion for me?"),
+    "runway": ("What if I spend less each week?", "What is a safe emergency cushion for me?"),
+    "cushion": ("How long will my money last?", "Are there ways to earn or grow safely?"),
+    "afford": ("What if I receive money this month?", "How long will my money last?"),
+    "scenario": ("Can I afford a specific purchase?", "How long will my money last?"),
+    "opportunities": ("What is a safe emergency cushion for me?", "How long will my money last?"),
+}
+_QUIET = (LLMNotConfigured, LLMUnavailable)
+
+
 class Orchestrator:
-    def __init__(self, registry: ToolRegistry, llm: Optional[LLMClient] = None):
+    """`llm` may be any object with complete(system, user) or any llm.LLMProvider (preferred: facts are passed
+    along so shadow-mode can check a candidate model's numbers)."""
+
+    def __init__(self, registry: ToolRegistry, llm: Optional[LLMClient] = None,
+                 planner: Optional[Any] = None, store: Optional[ConversationStore] = None):
         self._reg = registry
         self._llm = llm or NullLLM()
+        self._planner = planner or RulePlanner()
+        self._store = store
 
-    def handle(self, text: str, ctx: ToolContext) -> AgentResponse:
+    def chat(self, text: str, ctx: ToolContext) -> AgentResponse:
+        """Stateful entry point: remembers the last question so follow-ups like '20k?' work."""
+        if self._store is None:
+            self._store = ConversationStore()
+        state = self._store.get(ctx.user_id, ctx.as_of)
+        resp = self.handle(text, ctx, state)
+        self._store.put(ctx.user_id, ConversationState(
+            last_intents=resp.intents or state.last_intents,
+            last_text=((state.pending_text + " " + text)[:300] if state.pending_text else text[:300])
+            if resp.intents else state.last_text,
+            pending_text=resp.pending_text,
+            turns=state.turns + 1), ctx.as_of)
+        return resp
+
+    def handle(self, text: str, ctx: ToolContext, state: Optional[ConversationState] = None) -> AgentResponse:
         warnings: List[str] = []
-        intent, calls = route(text)
-        if intent == "clarify" or (not calls and intent in ("afford", "scenario")):
+        plan: Plan = self._planner.plan(text, state)
+        if not plan.intents:
+            first = plan.skipped[0] if plan.skipped else "clarify"
             q = ("How much money are you asking about? Please include the amount."
-                 if intent in ("afford", "scenario") else
+                 if first in ("afford", "scenario") else
                  "I can help with your balance, runway, emergency cushion, a purchase, a what-if, or opportunities. Which one?")
             res = self._reg.call("ask_user", {"question": q}, ctx)
-            return AgentResponse(q, intent, (TraceEntry("ask_user", res.ok, res.error),), False, (), q)
+            return AgentResponse(q, first, (TraceEntry("ask_user", res.ok, res.error),), False, (), q, (), (),
+                                 plan.pending_text or text[:300])
+        if plan.skipped:
+            warnings.append("needs_amount: " + ", ".join(plan.skipped))
 
-        results: List[ToolResult] = [self._reg.call(n, a, ctx) for n, a in calls]
-        trace = tuple(TraceEntry(r.tool, r.ok, r.error) for r in results)
-        failed = [r for r in results if not r.ok]
-        if failed:
-            codes = ", ".join(sorted({f"{r.tool}:{r.error}" for r in failed}))
-            warnings.append(f"tool failure: {codes}")
-            msg = ("I can't answer that right now because the required financial data or permission is "
-                   "unavailable.")
-            return AgentResponse(msg, intent, trace, False, tuple(warnings))
+        trace: List[TraceEntry] = []
+        per_intent: Dict[str, Dict[str, Any]] = {}
+        for intent, calls in plan.intents:
+            results = [self._reg.call(n, a, ctx) for n, a in calls]
+            trace += [TraceEntry(r.tool, r.ok, r.error) for r in results]
+            failed = [r for r in results if not r.ok]
+            if failed:
+                codes = ", ".join(sorted({f"{r.tool}:{r.error}" for r in failed}))
+                warnings.append(f"tool failure: {codes}")
+                msg = ("I can't answer that right now because the required financial data or permission is "
+                       "unavailable.")
+                return AgentResponse(msg, intent, tuple(trace), False, tuple(warnings), None, plan.names)
+            facts, conflicts = self._merge(results)
+            if conflicts:
+                warnings.append(f"conflicting facts withheld: {', '.join(conflicts)}")
+            per_intent[intent] = facts
 
-        facts, conflicts = self._merge(results)
-        if conflicts:
-            warnings.append(f"conflicting facts withheld: {', '.join(conflicts)}")
-        text_out, used = self._explain(intent, facts, text, warnings)
-        return AgentResponse(text_out, intent, trace, used, tuple(warnings))
+        names = plan.names
+        facts_all: Dict[str, Any] = per_intent[names[0]] if len(names) == 1 else dict(per_intent)
+        text_out, used = self._explain(names, per_intent, facts_all, text, warnings)
+        if plan.skipped:
+            text_out += " (I need an amount to answer the " + " and ".join(plan.skipped) + " part.)"
+        sugg: List[str] = []
+        for n in names:
+            sugg += [x for x in SUGGESTIONS.get(n, ()) if x not in sugg]
+        return AgentResponse(text_out, names[0] if len(names) == 1 else "+".join(names), tuple(trace), used,
+                             tuple(warnings), None, names, tuple(sugg[:3]))
 
     @staticmethod
     def _merge(results: List[ToolResult]) -> Tuple[Dict[str, Any], List[str]]:
@@ -199,17 +223,21 @@ class Orchestrator:
                     facts[k] = v
         return facts, conflicts
 
-    def _explain(self, intent: str, facts: Dict[str, Any], user_text: str, warnings: List[str]):
-        fallback = _template(intent, facts)
-        payload = json.dumps(redact({"intent": intent, "FACTS": facts}, hide_financial=False), default=str)
+    def _explain(self, names, per_intent, facts_all, user_text: str, warnings: List[str]):
+        fallback = " ".join(_template(n, per_intent[n]) for n in names)
+        payload = json.dumps(redact({"intents": list(names), "FACTS": facts_all}, hide_financial=False), default=str)
+        user = f"{payload}\n<USER_MESSAGE>\n{user_text[:500]}\n</USER_MESSAGE>"
         try:
-            out = self._llm.complete(SYSTEM_PROMPT, f"{payload}\n<USER_MESSAGE>\n{user_text[:500]}\n</USER_MESSAGE>")
-        except LLMUnavailable:
+            if isinstance(self._llm, LLMProvider):
+                out = self._llm.generate(LLMRequest.simple(SYSTEM_PROMPT, user, facts=facts_all)).text
+            else:
+                out = self._llm.complete(SYSTEM_PROMPT, user)
+        except _QUIET:
             return fallback, False
         except Exception:
             warnings.append("llm_error")
             return fallback, False
-        if not out or not numbers_supported(out, facts, user_text):
+        if not out or not numbers_supported(out, facts_all, user_text):
             warnings.append("llm_output_rejected: figures not supported by tool facts")
             return fallback, False
         return out.strip(), True

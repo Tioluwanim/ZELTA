@@ -184,3 +184,7 @@ Plus the architecture groundwork: providers, security boundary, twin service, op
 4. Persist consent and audit; add webhook route with replay protection.
 5. Evaluate forecasting and burn methods on real (consented) data; replace proposed constants with measured ones.
 6. Plug a model behind `LLMClient`; add a verified opportunity source.
+
+
+## LLM adapter and agent
+Models are swappable behind `zelta_ai/llm/` (fallback, circuit breaker, shadow mode for retiring third-party models); see `zelta_ai/docs/LLM_ADAPTER.md`. The agent now handles multi-part questions, follow-ups ("what about 20k?"), and an optional whitelisted LLM planner. All numbers still come from the deterministic engines.
