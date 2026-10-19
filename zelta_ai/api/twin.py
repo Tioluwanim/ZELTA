@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from domain.clock import NaiveDatetimeError, require_aware
 from financial_twin import FinancialTwinService
 from financial_twin.repository import TwinDataUnavailable, TwinRepository, UnconfiguredRepository
+from ratelimit import rate_limit
 from security import verify_internal_request
 
 logger = logging.getLogger("zelta.api.twin")
@@ -52,8 +53,8 @@ class ErrorOut(BaseModel):
     message: str
 
 
-_CODES = {401: "unauthorized", 403: "forbidden", 404: "not_found", 422: "invalid_request", 503: "twin_unavailable"}
-_GENERIC = {401: "Authentication failed.", 403: "Not allowed.", 404: "Not found.",
+_CODES = {401: "unauthorized", 429: "rate_limited", 403: "forbidden", 404: "not_found", 422: "invalid_request", 503: "twin_unavailable"}
+_GENERIC = {401: "Authentication failed.", 429: "Too many requests. Try again shortly.", 403: "Not allowed.", 404: "Not found.",
             503: "The financial twin is temporarily unavailable."}
 
 
@@ -91,6 +92,9 @@ class ContractRoute(APIRoute):
 router = APIRouter(prefix="/brain/v1", tags=["Financial Twin"], route_class=ContractRoute)
 
 
+_twin_limit = rate_limit(limit=60, window_s=60.0)     # per caller, per instance
+
+
 def get_twin_repository() -> TwinRepository:
     return UnconfiguredRepository()
 
@@ -99,8 +103,8 @@ def get_clock() -> datetime:
     return datetime.now(timezone.utc)      # the one place the system clock is read; engines never read it
 
 
-@router.get("/twin", response_model=TwinOut, dependencies=[Depends(verify_internal_request)],
-            responses={401: {"model": ErrorOut}, 422: {"model": ErrorOut}, 500: {"model": ErrorOut},
+@router.get("/twin", response_model=TwinOut, dependencies=[Depends(verify_internal_request), Depends(_twin_limit)],
+            responses={401: {"model": ErrorOut}, 422: {"model": ErrorOut}, 429: {"model": ErrorOut}, 500: {"model": ErrorOut},
                        503: {"model": ErrorOut}})
 async def get_twin(
     x_user_id: str = Header(..., min_length=1, max_length=128),

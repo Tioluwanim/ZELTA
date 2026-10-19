@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router, public_router
 from api.twin import router as twin_router
+from config.cors import allowed_origins
 from brain.bayse.stress_signal import monitor
 
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"   # secure by default (was "true")
@@ -70,10 +71,12 @@ app = FastAPI(
 
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+# Called by the ZELTA backend, not by browsers: default is NO browser origins. Set ALLOWED_ORIGINS
+# (comma-separated https origins) only if a browser must call this service directly.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allowed_origins(),
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

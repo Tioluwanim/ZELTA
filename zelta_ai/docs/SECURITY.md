@@ -16,6 +16,7 @@ engineering controls at the boundary; compliance is a separate process.
 | Access audit with redacted detail | `openbanking/audit.py` | implemented, in-memory only |
 | Agent tool permissions, strict argument validation, no money-moving tool exists | `agent_tools/registry.py` | implemented |
 | Layered identity assurance with step-up gating of tool scopes (stacked evidence, contradiction cap) | `assurance/` | implemented as pure logic; not wired to real signals; no online registry connected |
+| `/api/stress` and `/api/markets` require the internal key; per-caller rate limit (in-process, per instance); error text no longer leaked from `/api/markets`; CORS default is closed (`ALLOWED_ORIGINS` allow-list, no wildcard, no credentials) | `api/routes.py`, `ratelimit.py`, `config/cors.py` | implemented; the zelta_backend service already sends the key on these calls |
 | Internal-key check is constant-time and secure-by-default | `security.py` | implemented (Day 1) |
 | `/dev` token routes closed unless `APP_ENV=local` | `zelta_backend/main.py` | implemented (Day 1) |
 
@@ -23,7 +24,7 @@ engineering controls at the boundary; compliance is a separate process.
 - **Live Mono integration** (no sandbox credentials were available; endpoint paths and field semantics are unverified).
 - Persistent, encrypted consent and token storage; key rotation; secret manager integration.
 - Webhook replay protection and a real webhook route; idempotent webhook processing.
-- Rate limiting, request signing between backend and AI service beyond the shared key, mTLS or service identity.
+- Edge/gateway rate limiting (the in-process limiter is per instance), request signing between backend and AI service beyond the shared key, mTLS or service identity.
 - Tamper-evident audit storage and retention policy.
 - Encryption of stored financial data, data-retention and deletion workflows.
 - Legacy issues in `docs/AUDIT_DAY1.md` (float money, `detail=str(e)`, wildcard CORS, hardcoded test key).

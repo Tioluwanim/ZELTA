@@ -12,7 +12,7 @@ def load(monkeypatch, debug, key):
             monkeypatch.delenv(name, raising=False)
         else:
             monkeypatch.setenv(name, val)
-    sys.modules.pop("security", None)
+    monkeypatch.delitem(sys.modules, "security", raising=False)   # restored after the test
     sec = importlib.import_module("security")
     app = FastAPI()
 

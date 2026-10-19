@@ -19,7 +19,7 @@ Bayse or Gemini keys in this environment), so runtime behaviour is described fro
 6. **Two transaction stores:** `wallets/{uid}/transactions` (wallet routes, Mono simulation, seed script) and `users/{uid}/transactions` (`behavioral_service.py`). They can disagree. Not reconciled yet.
 7. **Mono is simulated:** `routes/mono.py` generates seeded fake transactions. There is no live Mono call anywhere.
 8. **Error leakage:** 38 places return `detail=str(e)` style messages. Not changed.
-9. **CORS:** `zelta_ai/main.py` uses `allow_origins=["*"]` with `allow_credentials=True`; `zelta_backend` defaults `ALLOWED_ORIGINS` to `*`. Not changed.
+9. **CORS (zelta_ai FIXED, backend not):** `zelta_ai/main.py` used `allow_origins=["*"]` with `allow_credentials=True`; `zelta_backend` defaults `ALLOWED_ORIGINS` to `*`. Not changed.
 10. **Blocking calls in async routes:** `async def` handlers call the synchronous Firestore client. Not changed.
 11. **Legacy tests were already failing before this work:** see `docs/RESEARCH.md` section "Verification".
 

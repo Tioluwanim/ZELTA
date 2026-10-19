@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
+from ratelimit import rate_limit
 from security import verify_internal_request
 from brain.pipeline import ZeltaPipeline
 from brain.bayse.stress_signal import monitor
@@ -20,6 +21,9 @@ router = APIRouter(prefix="/brain/v1", tags=["AI Brain"])
 public_router = APIRouter(tags=["Public API"])
 
 pipeline = ZeltaPipeline()
+
+# 120 requests/minute per caller per instance on the signal endpoints (blunts abuse and loops)
+_api_limit = rate_limit(limit=120, window_s=60.0)
 
 # Lazy-loaded Copilot (prevents crash if env not ready)
 _copilot: Optional[ZeltaCopilot] = None
@@ -174,7 +178,7 @@ async def get_intelligence(
             "success": False,
             "request_id": request_id,
             "latency_sec": latency,
-            "error": str(exc),
+            "error": "markets unavailable",
             "meta": {"status": "error"},
             "data": {
                 "allocation": {"verdict": "HOLD"},
@@ -268,7 +272,7 @@ async def get_hustle_templates_endpoint(
         logger.exception("get_hustle_templates_endpoint failed: %s", exc)
         return {
             "success": False,
-            "error": str(exc),
+            "error": "markets unavailable",
             "recommendations": "",
         }
 
@@ -284,7 +288,7 @@ async def post_hustle_templates_endpoint(
         free_cash=request.free_cash,
     )
 
-@public_router.get("/api/stress")
+@public_router.get("/api/stress", dependencies=[Depends(verify_internal_request), Depends(_api_limit)])
 async def get_stress():
     signal = monitor.get_signal() or {}
 
@@ -301,7 +305,7 @@ async def get_stress():
     }
 
 
-@public_router.get("/api/markets")
+@public_router.get("/api/markets", dependencies=[Depends(verify_internal_request), Depends(_api_limit)])
 async def get_markets():
     try:
         events_resp = await monitor.client.get_events()
@@ -332,5 +336,5 @@ async def get_markets():
         return {
             "count": 0,
             "markets": [],
-            "error": str(exc),
+            "error": "markets unavailable",
         }
