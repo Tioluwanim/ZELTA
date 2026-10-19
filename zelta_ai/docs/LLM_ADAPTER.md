@@ -45,3 +45,10 @@ The stack is: Guard (scrub secrets, strip control chars, cap sizes) → Instrume
 - No real vendor wrapper is shipped or tested; the snippets above are the integration point.
 - Breakers and conversation state are in-process, per instance.
 - Shadow comparison is figure-level, not a quality judgement of wording.
+
+## Legacy copilot (`brain/copilot/gemini.py`)
+`ZeltaCopilot(provider=...)` accepts any `LLMProvider`; `api.routes.set_copilot_provider(p)` swaps it at runtime.
+With no provider and no Gemini credentials it now runs with no model and returns its existing safe fallbacks
+instead of raising. The Gemini SDK import is optional. Gemini is still used (unchanged code path, not live-tested)
+only when its credentials are set and no provider is given. Copilot JSON text is not passed through the number
+guard yet.

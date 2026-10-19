@@ -8,15 +8,22 @@ survival state. No investment language. No finance jargon.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import re
 from typing import Any, Dict, Optional
 
-from google import genai
-from google.genai import types
-from pydantic import BaseModel, Field
+try:                                    # Gemini is optional: the copilot works with any llm.LLMProvider or none
+    from google import genai
+    from google.genai import types
+except ImportError:                     # pragma: no cover - depends on environment
+    genai = None  # type: ignore[assignment]
+    types = None  # type: ignore[assignment]
+from llm.base import LLMError, LLMProvider, LLMRequest
+from llm.providers import NullProvider
+from pydantic import BaseModel
 
 logger = logging.getLogger("zelta.copilot")
 if not logger.handlers:
@@ -77,7 +84,14 @@ Use double quotes. Unknown fields use null. Keep all text student-friendly.
         location: Optional[str] = None,
         api_key: Optional[str] = None,
         use_vertexai: Optional[bool] = None,
+        provider: Optional[LLMProvider] = None,
     ):
+        # Any LLMProvider (your own model, a vendor wrapper, a fallback chain) replaces Gemini entirely.
+        self._provider: Optional[LLMProvider] = provider
+        self.client: Any = None
+        if provider is not None:
+            self.model = provider.model
+            return
         project = project or os.getenv("GOOGLE_CLOUD_PROJECT")
         location = location or os.getenv("GOOGLE_CLOUD_LOCATION", "global")
         api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
@@ -88,6 +102,15 @@ Use double quotes. Unknown fields use null. Keep all text student-friendly.
                 use_vertexai = env_flag.strip().lower() in {"1", "true", "yes", "on"}
             else:
                 use_vertexai = bool(project)
+
+        configured = bool(project) if use_vertexai else bool(api_key)
+        if not configured or genai is None:
+            # No model configured (or SDK absent): every call returns the existing safe fallback.
+            if configured and genai is None:
+                logger.warning("[Copilot] Gemini configured but google-genai is not installed; running without a model")
+            self._provider = NullProvider()
+            self.model = "none"
+            return
 
         http_options = types.HttpOptions(api_version="v1")
 
@@ -360,7 +383,25 @@ Instructions:
             "context_summary": None,
         }
 
+    async def _provider_text(self, system: str, prompt: str, max_tokens: int, temperature: float) -> str:
+        assert self._provider is not None
+        req = LLMRequest.simple(system, prompt, max_tokens=max_tokens, temperature=temperature)
+        try:
+            return (await asyncio.to_thread(self._provider.generate, req)).text
+        except LLMError as exc:
+            logger.warning("[Copilot] model unavailable (%s)", exc.code)
+            return ""
+
     async def _call_json(self, prompt: str) -> CopilotResult:
+        if self._provider is not None:
+            text = await self._provider_text(f"{self.SYSTEM_PROMPT}\n\n{self.JSON_SYSTEM_PROMPT}", prompt, 2048, 0.2)
+            if not text:
+                return CopilotResult(confidence_note="AI explanation temporarily unavailable.")
+            try:
+                return self._parse_json(text)
+            except Exception as e:
+                logger.warning("[Copilot] JSON parse failed: %s", type(e).__name__)
+                return CopilotResult(confidence_note="AI explanation temporarily unavailable.")
         config = types.GenerateContentConfig(
             system_instruction=f"{self.SYSTEM_PROMPT}\n\n{self.JSON_SYSTEM_PROMPT}",
             temperature=0.2,
@@ -412,6 +453,14 @@ Instructions:
                 return CopilotResult(confidence_note="AI explanation temporarily unavailable.")
 
     async def _call_text(self, prompt: str) -> str:
+        if self._provider is not None:
+            raw = (await self._provider_text(self.SYSTEM_PROMPT, prompt, 400, 0.3)).strip()
+            if raw.startswith("{"):
+                try:
+                    return json.loads(self._extract_first_json(raw)).get("answer", raw)
+                except Exception:
+                    pass
+            return raw
         config = types.GenerateContentConfig(
             system_instruction=self.SYSTEM_PROMPT,
             temperature=0.3,
@@ -435,6 +484,8 @@ Instructions:
 
     async def aclose(self) -> None:
         """Close the async client cleanly."""
+        if self.client is None:
+            return
         try:
             await self.client.aio.aclose()
         except Exception:

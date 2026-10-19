@@ -100,7 +100,7 @@ app/ components/ public/        Next.js 16 frontend (auth, dashboard, form pages
 zelta_backend/                  FastAPI + Firebase service: wallet, profile, simulation, Mono/Squad simulations, gig board
   tests/                        Day 1: /dev routes closed by default
 zelta_ai/                       AI service
-  main.py api/ app/ config/     existing FastAPI app, settings, routes (unchanged except security defaults)
+  main.py api/ config/            existing FastAPI app, settings, routes (unchanged except security defaults)
   brain/                        existing Bayse stress, Bayesian/Kelly, NLP, LangGraph agent, Gemini copilot (float-based, legacy)
   vertex/ security.py           existing optimiser; internal-key check (now secure by default)
   domain/                       Money, Lagos time rules, canonical Event/Account/RawTransaction       (new)

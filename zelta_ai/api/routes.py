@@ -29,6 +29,12 @@ _api_limit = rate_limit(limit=120, window_s=60.0)
 _copilot: Optional[ZeltaCopilot] = None
 
 
+def set_copilot_provider(provider) -> None:
+    """Swap the model behind the copilot (any llm.LLMProvider, e.g. ZELTA's own model). None resets."""
+    global _copilot
+    _copilot = ZeltaCopilot(provider=provider) if provider is not None else None
+
+
 def get_copilot() -> ZeltaCopilot:
     global _copilot
     if _copilot is None:
