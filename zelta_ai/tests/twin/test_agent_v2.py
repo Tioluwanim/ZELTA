@@ -94,3 +94,17 @@ def _no_data():
     from tests.twin import fixtures as fx
     svc = FinancialTwinService(MockProvider(fx.accounts(), {}), ())
     return svc.build("u1", "c", AS_OF)
+
+
+def test_days_10_to_12_tools_are_routed():
+    o = orch()
+    c = ctx()
+    g = o.handle("is it safe to spend 3000?", c)
+    assert [t.tool for t in g.trace] == ["check_action"] and g.trace[0].ok and "proceed" in g.text.lower()
+    assert o.handle("is it safe to spend 60000", c).text.startswith("Hold off")
+    assert o.handle("is it safe to spend", c).needs_user_input
+    r = o.handle("what do you recommend?", c)
+    assert [t.tool for t in r.trace] == ["get_recommendations"] and "Next steps" in r.text and "less each week" in r.text
+    w = o.handle("what if I save 3000 weekly", c)
+    assert [t.tool for t in w.trace] == ["run_whatif"] and w.trace[0].ok and "Simulated" in w.text
+    assert orch().handle("what if I save 3000 weekly", ctx(perms=("twin:read",))).warnings   # simulate scope enforced

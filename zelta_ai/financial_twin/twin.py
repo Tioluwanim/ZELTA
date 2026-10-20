@@ -77,7 +77,7 @@ class TwinSnapshot:
 
     def forecast(self, horizon: int = 30) -> Optional[ForecastSummary]:
         from engines.buffer import minimum_safe_amount
-        ms = minimum_safe_amount(self.inferred.essential_per_day, self.obligations, self.as_of)
+        ms = minimum_safe_amount(self.inferred.essential_per_day, (), self.as_of)   # essentials only; bills are already in the path
         return forecast_summary(self.total, self.as_of, self.inferred.burn.per_day, self.obligations, self.streams,
                                 self.goals, ms, self.inferred.cushion, horizon)
 
@@ -131,6 +131,11 @@ class FinancialTwinService:
             warnings.append(f"provider '{self._p.name}' is not a live integration")
 
         connected = total_connected_money(accounts, as_of) if accounts else None
+        if connected is not None and not connected.included:
+            # nothing contributed a balance: the total is unknown, not zero
+            reasons = ", ".join(sorted({r for _, r in connected.excluded})) or "no accounts"
+            warnings.append(f"no account contributed a usable balance ({reasons})")
+            connected = None
         if connected is not None and not connected.complete:
             warnings.append("connected money is incomplete: some accounts are stale, excluded or unknown")
         if connected is None:

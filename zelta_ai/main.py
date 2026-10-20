@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router, public_router
 from api.twin import router as twin_router
+from api.compute import router as compute_router
 from config.cors import allowed_origins
 from brain.bayse.stress_signal import monitor
 
@@ -86,6 +87,7 @@ app.add_middleware(
 app.include_router(router)         # /brain/*
 app.include_router(public_router)  # /api/*
 app.include_router(twin_router)    # /brain/v1/twin (unconfigured data source => 503 until wired)
+app.include_router(compute_router)  # stateless compute: twin, guardian, whatif, agent
 
 
 # ── ROOT ──────────────────────────────────────────────────────────────────────

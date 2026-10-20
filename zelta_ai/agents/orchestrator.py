@@ -70,11 +70,17 @@ def parse_amount(text: str) -> Optional[str]:
 def route(text: str) -> Tuple[str, List[Tuple[str, Dict[str, Any]]]]:
     t = text.lower()
     amt = parse_amount(text)
+    if re.search(r"\b(is it (safe|ok|okay)|safe to|should i (buy|spend|pay|send)|ok to|okay to)\b", t):
+        return ("guardian", [("check_action", {"amount_naira": amt})] if amt else [])
+    if re.search(r"\b(recommend\w*|what should i do|advice|suggest\w*|next step)\b", t):
+        return ("recommendations", [("get_recommendations", {})])
     if re.search(r"\b(can i (afford|buy|spend)|afford)\b", t):
         return ("afford", [("can_afford", {"amount_naira": amt})] if amt else [])
     if re.search(r"\b(what if|scenario|if i (cut|spend|receive|get|buy)|spend less|cut)\b", t):
         if not amt:
             return ("scenario", [])
+        if re.search(r"\b(save|set aside)\b.*\b(weekly|week|each week|every week)\b", t):
+            return ("scenario", [("run_whatif", {"kind": "save_weekly", "amount_naira": amt})])
         kind = ("spend_less_weekly" if re.search(r"\b(less|cut|reduce|save)\b", t) else
                 "receive" if re.search(r"\b(receive|get|earn|paid|allowance|gift)\b", t) else
                 "spend_more_weekly" if re.search(r"\b(more)\b", t) else "purchase")
@@ -137,6 +143,17 @@ def _template(intent: str, facts: Dict[str, Any]) -> str:
             return facts.get("note") or "No opportunities are available from the configured sources right now."
         return "Options (source and risk shown): " + "; ".join(
             f"{o['category']}: {o['title']} [{o['provenance']}, risk {o['risk']}]" for o in items)
+    if intent == "guardian":
+        icon = {"PROCEED": "Safe to proceed.", "CAUTION": "Proceed with care.", "PROTECT": "Hold off."}[facts["state"]]
+        worst = [f["detail"] for f in facts["factors"] if f["state"] != "PROCEED"][:2]
+        mx = facts.get("max_proceed_amount")
+        return (f"{icon} " + (" ".join(w[0].upper() + w[1:] + "." for w in worst) + " " if worst else "")
+                + (f"Safe flexible spending: {mx['display']}." if mx else "") + ("" if facts["verified"] else " Some checks could not be verified yet.")).strip()
+    if intent == "recommendations":
+        items = facts.get("recommendations", [])
+        if not items:
+            return "I have no recommendation right now. " + ("; ".join(facts.get("withheld", [])[:2]) or "Your numbers look steady.")
+        return "Next steps: " + " ".join(f"{i + 1}. {x['title']}" + (f" ({x['effect']})" if x.get("effect") else "") + "." for i, x in enumerate(items[:3]))
     if intent == "habits":
         bits = []
         if facts.get("weekend_vs_weekday_multiple") is not None:
@@ -183,6 +200,8 @@ SUGGESTIONS = {
     "afford": ("What if I receive money this month?", "How long will my money last?"),
     "scenario": ("Can I afford a specific purchase?", "How long will my money last?"),
     "opportunities": ("What is a safe emergency cushion for me?", "How long will my money last?"),
+    "guardian": ("What should I do next?", "How long will my money last?"),
+    "recommendations": ("What if I spend less each week?", "How long will my money last?"),
     "habits": ("What is my forecast for the next month?", "How long will my money last?"),
     "forecast": ("What are my spending habits?", "What if I spend less each week?"),
     "buffer": ("What is my forecast for the next month?", "Can I afford a specific purchase?"),
@@ -222,7 +241,7 @@ class Orchestrator:
         if not plan.intents:
             first = plan.skipped[0] if plan.skipped else "clarify"
             q = ("How much money are you asking about? Please include the amount."
-                 if first in ("afford", "scenario") else
+                 if first in ("afford", "scenario", "guardian") else
                  "I can help with your balance, runway, emergency cushion, a purchase, a what-if, or opportunities. Which one?")
             res = self._reg.call("ask_user", {"question": q}, ctx)
             return AgentResponse(q, first, (TraceEntry("ask_user", res.ok, res.error),), False, (), q, (), (),

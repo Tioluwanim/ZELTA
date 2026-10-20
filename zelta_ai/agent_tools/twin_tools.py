@@ -7,7 +7,10 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from domain.money import Money
 from engines.affordability import affordability
+from engines.guardian import Action, guardian
+from engines.recommendations import recommend
 from engines.runway import InvalidScenario
+from engines.whatif import KINDS as WHATIF_KINDS, Scenario, run_whatif
 from .registry import Tool, ToolContext, ToolRegistry
 
 READ = "twin:read"
@@ -47,6 +50,40 @@ class ScenarioArgs(AmountArgs):
     def _kind(cls, v: str) -> str:
         if v not in ("spend_less_weekly", "spend_more_weekly", "receive", "purchase", "unexpected_expense"):
             raise ValueError("unknown scenario kind")
+        return v
+
+
+class GuardArgs(AmountArgs):
+    kind: str = "spend"
+    category: Optional[str] = None
+
+    @field_validator("kind")
+    @classmethod
+    def _gk(cls, v: str) -> str:
+        if v not in ("spend", "transfer_out", "lock_savings"):
+            raise ValueError("unknown action kind")
+        return v
+
+
+class WhatIfArgs(_Strict):
+    kind: str
+    amount_naira: Optional[str] = None
+    category: Optional[str] = None
+    pct: Optional[int] = None
+    name: Optional[str] = None
+
+    @field_validator("kind")
+    @classmethod
+    def _wk(cls, v: str) -> str:
+        if v not in WHATIF_KINDS:
+            raise ValueError("unknown scenario kind")
+        return v
+
+    @field_validator("amount_naira")
+    @classmethod
+    def _wa(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            Money.from_major(v)
         return v
 
 
@@ -167,6 +204,34 @@ def buffer_tool(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
             "flexible_room": money_out(b.flexible_room), "notes": list(b.notes)}
 
 
+def recommendations(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
+    r = recommend(_snap(ctx))
+    return {"recommendations": [{"kind": x.kind, "priority": x.priority, "title": x.title, "amount": money_out(x.amount),
+                                 "because": list(x.because), "effect": x.effect, "confidence": x.confidence} for x in r.items],
+            "withheld": list(r.withheld)}
+
+
+def check_action(ctx: ToolContext, a: GuardArgs) -> Dict[str, Any]:
+    g = guardian(_snap(ctx), Action(a.kind, Money.from_major(a.amount_naira), a.category))
+    return {"state": g.state, "headline": g.headline, "verified": g.verified, "max_proceed_amount": money_out(g.max_proceed_amount),
+            "factors": [{"name": f.name, "state": f.state, "detail": f.detail} for f in g.factors]}
+
+
+def whatif(ctx: ToolContext, a: WhatIfArgs) -> Dict[str, Any]:
+    sc = Scenario(a.kind, None if a.amount_naira is None else Money.from_major(a.amount_naira), a.category, a.pct, a.name)
+    try:
+        o = run_whatif(_snap(ctx), [sc])[0]
+    except InvalidScenario as exc:
+        return {"feasible": False, "reason": str(exc)}
+    return {"feasible": True, "simulated": True, "scenario": o.label,
+            "runway_before_days": None if o.runway_before.days is None else round(o.runway_before.days, 2),
+            "runway_after_days": None if o.runway_after.days is None else round(o.runway_after.days, 2),
+            "runout_before": o.runout_before.isoformat() if o.runout_before else None,
+            "runout_after": o.runout_after.isoformat() if o.runout_after else None,
+            "balance_end_before": money_out(o.balance_end_before), "balance_end_after": money_out(o.balance_end_after),
+            "notes": list(o.notes)}
+
+
 def opportunities(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
     s = _snap(ctx)
     if ctx.opportunity_engine is None:
@@ -194,6 +259,9 @@ def build_default_registry() -> ToolRegistry:
         Tool("get_spending_habits", "Descriptive spending habits (Financial Genome) with data sufficiency.", NoArgs, habits, READ),
         Tool("get_forecast", "Expected balance, likely runout, next-income effect, goal trajectory.", NoArgs, forecast_tool, READ),
         Tool("get_buffer", "Minimum safe amount, cushion and buffer status.", NoArgs, buffer_tool, READ),
+        Tool("get_recommendations", "Deterministic next steps from the calculated financial state.", NoArgs, recommendations, READ),
+        Tool("check_action", "Guardian: PROCEED, CAUTION or PROTECT for a spend, transfer or lock.", GuardArgs, check_action, READ),
+        Tool("run_whatif", "Bounded hypothetical (spend less, receive, save weekly, lose income...). Simulated, never fact.", WhatIfArgs, whatif, SIMULATE),
         Tool("list_opportunities", "Earn/Save/Grow opportunities with provenance.", NoArgs, opportunities, OPPS),
         Tool("ask_user", "Ask the user for missing information.", AskArgs, ask_user, READ),
     ):
