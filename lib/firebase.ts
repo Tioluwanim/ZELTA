@@ -7,7 +7,7 @@ export function firebaseReady(): boolean {
 }
 let app: FirebaseApp | null = null;
 export function auth(): Auth {
-  if (!firebaseReady()) throw new Error("Sign-in is not configured. Set the NEXT_PUBLIC_FIREBASE_* variables.");
+  if (!firebaseReady()) throw new Error("Sign-in is not configured. Set the NEXT_FIREBASE_* variables.");
   app ??= getApps()[0] ?? initializeApp(firebaseConfig);
   return getAuth(app);
 }
