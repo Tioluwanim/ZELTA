@@ -165,6 +165,13 @@ Needs `pytest`, `fastapi`, `httpx`, `pydantic`; the backend test also needs the 
 | 4 | Burn and runway with dated bills | `engines/`; Tola runway 16.99 days (naive 24.9) |
 | 5 | First thin endpoint | `GET /brain/v1/twin` (`api/twin.py`): typed `TwinOut`, `{code, message}` errors only, internal-key auth, 503 until a data source is wired |
 
+| 6 | Current state | `engines/position.py`: inflow/outflow, bills due, availability, goal needs, flexible money (`snapshot.position()`) |
+| 7 | Financial Genome ("Your Spending Habits") | `engines/genome.py`: income timing, post-income spend, categories, recurring, weekend and month-end, change; thin data returns reasons, not guesses |
+| 8 | Forecast | `engines/forecast_summary.py`: expected balance, likely runout and range, next-income effect, goal trajectory; explicit `as_of` and timezone |
+| 9 | Cost buffer | `engines/buffer.py`: minimum safe amount, buffer after bills; the forecast reports the first day it dips below minimum or cushion |
+
+Days 6 to 9 follow the build-guide plan (current state, genome, forecast, cost buffer). Thresholds are proposed, not validated. The agent can answer habits, forecast, buffer and position questions through new tools; none of these are exposed on HTTP yet.
+
 Plus the architecture groundwork: providers, security boundary, twin service, opportunity contract, agents and tools. The Tola numbers come from a synthetic fixture, not real users.
 
 ## Limitations and assumptions

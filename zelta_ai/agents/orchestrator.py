@@ -79,6 +79,14 @@ def route(text: str) -> Tuple[str, List[Tuple[str, Dict[str, Any]]]]:
                 "receive" if re.search(r"\b(receive|get|earn|paid|allowance|gift)\b", t) else
                 "spend_more_weekly" if re.search(r"\b(more)\b", t) else "purchase")
         return ("scenario", [("run_scenario", {"kind": kind, "amount_naira": amt})])
+    if re.search(r"\b(habits?|patterns?|genome|weekends?|how do i spend)\b", t):
+        return ("habits", [("get_spending_habits", {})])
+    if re.search(r"\b(forecast|expected balance|projected|next (week|month)|upcoming)\b", t):
+        return ("forecast", [("get_forecast", {})])
+    if re.search(r"\b(minimum safe|safe amount|buffer after)\b", t):
+        return ("buffer", [("get_buffer", {})])
+    if re.search(r"\b(inflow|outflow|position|available money|money in|money out)\b", t):
+        return ("position", [("get_current_position", {})])
     if re.search(r"\b(runway|how long|last|run out|broke)\b", t):
         return ("runway", [("estimate_runway", {})])
     if re.search(r"\b(cushion|emergency|buffer)\b", t):
@@ -129,6 +137,42 @@ def _template(intent: str, facts: Dict[str, Any]) -> str:
             return facts.get("note") or "No opportunities are available from the configured sources right now."
         return "Options (source and risk shown): " + "; ".join(
             f"{o['category']}: {o['title']} [{o['provenance']}, risk {o['risk']}]" for o in items)
+    if intent == "habits":
+        bits = []
+        if facts.get("weekend_vs_weekday_multiple") is not None:
+            bits.append(f"Weekend spending is about {facts['weekend_vs_weekday_multiple']}x a weekday.")
+        if facts.get("spending_change"):
+            bits.append(f"Spending over the last 14 days is {facts['spending_change']} versus the 14 before"
+                        + (f" ({facts['spending_change_pct']}%)." if facts.get("spending_change_pct") is not None else "."))
+        for r in facts.get("recurring", [])[:3]:
+            bits.append(f"Recurring {r['cadence']}: {r['label']} about {r['typical']['display']}.")
+        if facts.get("post_income_spike"):
+            bits.append(f"Spending runs about {facts['post_income_spend_multiple']}x normal in the 3 days after income.")
+        missing = facts.get("not_enough_data_for", [])
+        if not bits:
+            return "There is not enough history to describe your spending habits yet."
+        return " ".join(bits) + (f" Not enough data yet for: {'; '.join(missing)}." if missing else "")
+    if intent == "forecast":
+        if not facts.get("available"):
+            return "I cannot forecast yet: " + facts.get("reason", "not enough data") + "."
+        eb = facts["expected_balance"]
+        out = "Projected balance (not a prediction): " + ", ".join(f"day {k}: {v['display']}" for k, v in eb.items()) + "."
+        ro = facts.get("likely_runout_date")
+        out += f" Likely runout: {ro}." if ro else " Money is not projected to run out within the horizon."
+        if facts.get("first_below_minimum_safe"):
+            out += f" It first dips below the minimum safe amount on {facts['first_below_minimum_safe']}."
+        return out
+    if intent == "buffer":
+        msg = {"healthy": "Your buffer after upcoming bills is healthy.",
+               "below_cushion": "After upcoming bills you would be below your emergency cushion.",
+               "below_minimum": "After upcoming bills you would be below the minimum safe amount.",
+               "unknown": "I cannot assess your buffer yet: " + " ".join(facts.get("notes", []))}[facts["status"]]
+        return msg + (f" Minimum safe: {facts['minimum_safe']['display']}." if facts.get("minimum_safe") else "")
+    if intent == "position":
+        av = facts.get("available_after_bills")
+        return (f"Money in (28 days): {facts['inflow_28d']['display']}; money out: {facts['outflow_28d']['display']}. "
+                f"Bills due soon: {facts['bills_due_in_horizon']['display']}. "
+                f"Available after bills: {av['display'] if av else 'unknown'}.")
     return "I need a bit more detail to help with that."
 
 
@@ -139,6 +183,10 @@ SUGGESTIONS = {
     "afford": ("What if I receive money this month?", "How long will my money last?"),
     "scenario": ("Can I afford a specific purchase?", "How long will my money last?"),
     "opportunities": ("What is a safe emergency cushion for me?", "How long will my money last?"),
+    "habits": ("What is my forecast for the next month?", "How long will my money last?"),
+    "forecast": ("What are my spending habits?", "What if I spend less each week?"),
+    "buffer": ("What is my forecast for the next month?", "Can I afford a specific purchase?"),
+    "position": ("What are my spending habits?", "What is a safe emergency cushion for me?"),
 }
 _QUIET = (LLMNotConfigured, LLMUnavailable)
 

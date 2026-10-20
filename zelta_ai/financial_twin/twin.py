@@ -16,7 +16,11 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 from domain.events import Account, Event
 from domain.money import Money
 from engines.burn import BurnResult, burn, essential_per_day, first_observed_from
+from engines.buffer import BufferResult, buffer_status
 from engines.cushion import Stability, income_stability, required_cushion
+from engines.forecast_summary import ForecastSummary, forecast_summary
+from engines.genome import Genome, genome
+from engines.position import Goal, Position, current_position
 from engines.runway import IncomeStream, Obligation, RunwayResult, WhatIfResult, runway_days, what_if
 from ledger import ConnectedMoney, NormaliseResult, normalise, total_connected_money
 from openbanking.audit import AuditLog
@@ -57,10 +61,30 @@ class TwinSnapshot:
     warnings: Tuple[str, ...]
     obligations: Tuple[Obligation, ...] = ()
     streams: Tuple[IncomeStream, ...] = ()
+    goals: Tuple[Goal, ...] = ()
 
     @property
     def total(self) -> Optional[Money]:
         return self.observed.connected.total if self.observed.connected else None
+
+    # Days 6-9 views: pure functions of the snapshot (as_of is the snapshot's, never the clock)
+    def position(self) -> Position:
+        return current_position(self.total, self.observed.events, self.as_of, self.obligations,
+                                self.inferred.essential_per_day, self.inferred.cushion, self.goals)
+
+    def genome(self) -> Genome:
+        return genome(self.observed.events, self.as_of, self.observed.first_observed)
+
+    def forecast(self, horizon: int = 30) -> Optional[ForecastSummary]:
+        from engines.buffer import minimum_safe_amount
+        ms = minimum_safe_amount(self.inferred.essential_per_day, self.obligations, self.as_of)
+        return forecast_summary(self.total, self.as_of, self.inferred.burn.per_day, self.obligations, self.streams,
+                                self.goals, ms, self.inferred.cushion, horizon)
+
+    def buffer(self) -> BufferResult:
+        pos = self.position()
+        return buffer_status(self.total, self.inferred.essential_per_day, self.inferred.cushion, self.obligations,
+                             self.as_of, pos.safe_flexible)
 
     def simulate(self, kind: str, amount: Money, horizon: int = 30) -> WhatIfResult:
         """Hypothetical only. Needs a known total and burn; otherwise refuses rather than guessing."""
@@ -81,8 +105,8 @@ class FinancialTwinService:
     def build(self, user_id: str, connection_ref: str, as_of: datetime,
               obligations: Sequence[Obligation] = (), streams: Sequence[IncomeStream] = (),
               essential_categories: Iterable[str] = (), monthly_incomes: Sequence[Money] = (),
-              timing_hits: int = 0, timing_expected: int = 0, first_observed: Optional[date] = None
-              ) -> TwinSnapshot:
+              timing_hits: int = 0, timing_expected: int = 0, first_observed: Optional[date] = None,
+              goals: Sequence[Goal] = ()) -> TwinSnapshot:
         warnings: List[str] = []
         accounts: List[Account] = []
         norm = NormaliseResult((), (), 0, ())
@@ -139,7 +163,7 @@ class FinancialTwinService:
         return TwinSnapshot(as_of, user_id,
                             Observed(tuple(accounts), connected, events, len(norm.rejected), fo),
                             Inferred(b, ess, stab, cushion, assume, rw, rwc),
-                            tuple(fresh), tuple(stale), tuple(warnings), tuple(obligations), tuple(streams))
+                            tuple(fresh), tuple(stale), tuple(warnings), tuple(obligations), tuple(streams), tuple(goals))
 
     def _log(self, at, user_id, action, outcome):
         if self._audit:

@@ -109,6 +109,64 @@ def scenario(ctx: ToolContext, a: ScenarioArgs) -> Dict[str, Any]:
             "notes": list(w.notes)}
 
 
+def _r(x, n=2):
+    return None if x is None else round(float(x), n)
+
+
+def position(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
+    p = _snap(ctx).position()
+    return {"total_connected_money": money_out(p.total), "inflow_28d": money_out(p.inflow_28d),
+            "outflow_28d": money_out(p.outflow_28d), "net_28d": money_out(p.net_28d),
+            "bills_due_in_horizon": money_out(p.obligations_horizon), "bills_count": p.obligations_count,
+            "available_after_bills": money_out(p.available_after_obligations),
+            "goals_required_horizon": money_out(p.goals_required_horizon), "cushion": money_out(p.cushion),
+            "safe_flexible": money_out(p.safe_flexible), "horizon_days": p.horizon_days, "notes": list(p.notes)}
+
+
+def habits(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
+    g = _snap(ctx).genome()
+    t = g.income_timing
+    return {"covered_days": g.covered_days,
+            "income_timing": None if t is None else {"typical_day_of_month": t.typical_day_of_month,
+                                                    "spread_days": t.spread_days, "events": t.events},
+            "post_income_spend_multiple": _r(g.post_income_spike), "post_income_spike": g.spike_flag,
+            "category_share_pct": {k: _r(v * 100, 1) for k, v in g.category_share.items()},
+            "focus_weekly_spend": {k: money_out(Money(v)) for k, v in g.focus_weekly_minor.items()},
+            "recurring": [{"label": r.label, "cadence": r.cadence, "typical": money_out(Money(r.typical_minor)),
+                           "occurrences": r.occurrences} for r in g.recurring],
+            "weekend_vs_weekday_multiple": _r(g.weekend_ratio), "month_end_multiple": _r(g.month_end_ratio),
+            "spending_change_pct": _r(None if g.spending_change is None else g.spending_change * 100, 1),
+            "spending_change": g.change_flag, "not_enough_data_for": list(g.insufficient)}
+
+
+def forecast_tool(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
+    f = _snap(ctx).forecast()
+    if f is None:
+        return {"available": False, "reason": "balance or spending estimate is unknown (insufficient evidence)"}
+    ni = f.next_income
+    return {"available": True, "timezone": f.timezone, "horizon_days": f.horizon,
+            "expected_balance": {str(k): money_out(v) for k, v in f.expected_balance.items()},
+            "likely_runout_date": f.likely_runout.isoformat() if f.likely_runout else None,
+            "runout_range": [d.isoformat() if d else None for d in f.runout_range],
+            "upcoming_expenses": [{"name": o.name, "amount": money_out(o.amount), "due": o.due.isoformat()}
+                                  for o in f.upcoming_expenses],
+            "next_income": None if ni is None else {"name": ni.stream, "arrives": ni.arrives.isoformat(),
+                                                    "runout_day_without": ni.runout_day_without,
+                                                    "runout_day_with": ni.runout_day_with,
+                                                    "gain_at_horizon": money_out(ni.balance_gain_at_horizon)},
+            "goals": [{"name": g.name, "status": g.status, "remaining": money_out(g.remaining)} for g in f.goals],
+            "first_below_minimum_safe": f.first_below_minimum.isoformat() if f.first_below_minimum else None,
+            "first_below_cushion": f.first_below_cushion.isoformat() if f.first_below_cushion else None,
+            "notes": list(f.notes)}
+
+
+def buffer_tool(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
+    b = _snap(ctx).buffer()
+    return {"status": b.status, "minimum_safe": money_out(b.minimum_safe), "cushion": money_out(b.cushion),
+            "buffer_after_bills": money_out(b.buffer_after_obligations),
+            "flexible_room": money_out(b.flexible_room), "notes": list(b.notes)}
+
+
 def opportunities(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
     s = _snap(ctx)
     if ctx.opportunity_engine is None:
@@ -132,6 +190,10 @@ def build_default_registry() -> ToolRegistry:
         Tool("evaluate_cushion", "Emergency cushion requirement and whether it is covered.", NoArgs, cushion, READ),
         Tool("can_afford", "Whether an amount fits within safe flexible spending.", AmountArgs, can_afford, READ),
         Tool("run_scenario", "Hypothetical what-if on runway. Simulated, never fact.", ScenarioArgs, scenario, SIMULATE),
+        Tool("get_current_position", "Inflow, outflow, bills due, availability, goals, flexible money.", NoArgs, position, READ),
+        Tool("get_spending_habits", "Descriptive spending habits (Financial Genome) with data sufficiency.", NoArgs, habits, READ),
+        Tool("get_forecast", "Expected balance, likely runout, next-income effect, goal trajectory.", NoArgs, forecast_tool, READ),
+        Tool("get_buffer", "Minimum safe amount, cushion and buffer status.", NoArgs, buffer_tool, READ),
         Tool("list_opportunities", "Earn/Save/Grow opportunities with provenance.", NoArgs, opportunities, OPPS),
         Tool("ask_user", "Ask the user for missing information.", AskArgs, ask_user, READ),
     ):
