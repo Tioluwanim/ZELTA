@@ -1,36 +1,70 @@
 @import "tailwindcss";
+@import "@fontsource-variable/fredoka";
+@import "@fontsource-variable/figtree";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-
-  /* --foreground: #ffffff;
-  --background: #171717; */
+  --chalk: #f6f6fb;
+  --paper: #ffffff;
+  --ink: #1d1f3a;
+  --ink-soft: #5b5e7e;
+  --line: #e3e4f0;
+  --indigo: #2b2d7f;
+  --indigo-deep: #1c1e5c;
+  --indigo-tint: #e8e9fb;
+  --danfo: #ffc21a;
+  --danfo-deep: #d99a00;
+  --danfo-tint: #fff3cc;
+  --mint: #1fb178;
+  --mint-deep: #138556;
+  --mint-tint: #dcf5ea;
+  --coral: #ff5d5d;
+  --coral-deep: #c93a3a;
+  --coral-tint: #ffe5e5;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-chalk: var(--chalk);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-indigo: var(--indigo);
+  --color-indigo-deep: var(--indigo-deep);
+  --color-indigo-tint: var(--indigo-tint);
+  --color-danfo: var(--danfo);
+  --color-danfo-deep: var(--danfo-deep);
+  --color-danfo-tint: var(--danfo-tint);
+  --color-mint: var(--mint);
+  --color-mint-deep: var(--mint-deep);
+  --color-mint-tint: var(--mint-tint);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --color-coral-tint: var(--coral-tint);
+  --font-display: "Fredoka Variable", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Figtree Variable", system-ui, sans-serif;
 }
 
-/* Dark mode disabled for now
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-*/
-
+html { background: var(--chalk); }
 body {
-  background: var(--foreground);
-  color: var(--background);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+.num { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 
-  /* i aded the below to test light mode manualy  */
-  /* background: var(--background);
-  color: var(--foreground); */
-  width: 100%;
-  font-family: Arial, Helvetica, sans-serif;
+:focus-visible { outline: 3px solid var(--indigo); outline-offset: 3px; border-radius: 12px; }
+
+/* Tactile buttons: the bottom edge is the "thickness"; pressing it closes the gap. */
+.btn { transition: transform 80ms ease, box-shadow 80ms ease; }
+.btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 0 transparent !important; }
+
+@keyframes zel-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0 } 60% { transform: scale(1.04) } 100% { transform: scale(1); opacity: 1 } }
+.zel-bob { animation: zel-bob 2.6s ease-in-out infinite; }
+.pop { animation: pop 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .zel-bob, .pop { animation: none; }
+  .btn { transition: none; }
 }

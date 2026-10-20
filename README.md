@@ -96,7 +96,7 @@ Separate from the twin; it only reads a `TwinSnapshot`. Categories: **Earn** (ra
 ## Repository structure
 
 ```
-app/ components/ public/        Next.js 16 frontend (auth, dashboard, form pages)
+app/ components/ lib/ public/   Next.js 16 frontend: Money Path, Twin, Coach, Earn, Me (see zelta_ai/docs/FRONTEND.md)
 zelta_backend/                  FastAPI + Firebase service: wallet, profile, simulation, Mono/Squad simulations, gig board
   tests/                        Day 1: /dev routes closed by default
 zelta_ai/                       AI service

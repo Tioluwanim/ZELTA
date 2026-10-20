@@ -1,28 +1,17 @@
-import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-
-// const inter = Inter({
-//   variable: "--font-inter",
-//   subsets: ["latin"],
-// });
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  variable: "--font-open-sans",
-});
+import { AuthProvider } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Zelta",
-  description: "behavioural quantitative intelligence",
+  title: "ZELTA",
+  description: "See how long your money lasts, and what to do about it.",
 };
+export const viewport: Viewport = { themeColor: "#2b2d7f", width: "device-width", initialScale: 1 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${openSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col p-3">{children}</body>
+    <html lang="en">
+      <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );
 }
