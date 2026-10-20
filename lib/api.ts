@@ -19,7 +19,7 @@ async function token(): Promise<string> {
 }
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
-  if (!API_URL) throw new ApiError("The server address is not set (NEXT_PUBLIC_API_URL).", 0);
+  if (!API_URL) throw new ApiError("The server address is not set (NEXT_API_URL).", 0);
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
