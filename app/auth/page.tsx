@@ -27,7 +27,7 @@ function Form() {
       </div>
       <Card>
         {!configured ? (
-          <p role="alert" className="text-coral-deep">Sign-in is not set up on this build. Add the NEXT_PUBLIC_FIREBASE_* values, or run with NEXT_PUBLIC_DEMO=1.</p>
+          <p role="alert" className="text-coral-deep">Sign-in is not set up on this build. Add the NEXT_FIREBASE_* values, or run with NEXT_DEMO=1.</p>
         ) : (
           <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void run(() => mode === "signup" ? signUp(name.trim(), email, password) : signIn(email, password)); }}>
             {mode === "signup" && <label className="block font-semibold">Your name<input className={field} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" required /></label>}
