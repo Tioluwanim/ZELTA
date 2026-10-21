@@ -147,3 +147,11 @@ def test_minimum_safe_and_buffer_status_levels():
     assert buffer_status(N(16000), **base).status == "below_minimum"
     assert buffer_status(None, **base).status == "unknown"
     assert buffer_status(N(10000), None, None, [], AS_OF).status == "unknown"
+
+
+def test_daily_spend_series_is_28_days_and_sums_to_outflow():
+    from engines.position import daily_spend
+    series = daily_spend(history(), AS_OF)
+    assert len(series) == 28 and series[0][0] < series[-1][0] and all(m >= 0 for _, m in series)
+    p = current_position(N(1000), history(), AS_OF)
+    assert sum(m for _, m in p.daily_spend) == p.outflow_28d.minor

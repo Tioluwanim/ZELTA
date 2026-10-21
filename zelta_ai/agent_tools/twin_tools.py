@@ -157,7 +157,8 @@ def position(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
             "bills_due_in_horizon": money_out(p.obligations_horizon), "bills_count": p.obligations_count,
             "available_after_bills": money_out(p.available_after_obligations),
             "goals_required_horizon": money_out(p.goals_required_horizon), "cushion": money_out(p.cushion),
-            "safe_flexible": money_out(p.safe_flexible), "horizon_days": p.horizon_days, "notes": list(p.notes)}
+            "safe_flexible": money_out(p.safe_flexible), "horizon_days": p.horizon_days, "notes": list(p.notes),
+            "daily_spend_28d": [{"date": d.isoformat(), "minor": m} for d, m in p.daily_spend]}
 
 
 def habits(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:

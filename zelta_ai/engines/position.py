@@ -5,7 +5,7 @@ Horizon constants and the linear goal-funding rule are PROPOSED, not validated.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from fractions import Fraction
 from typing import Optional, Sequence, Tuple
 
@@ -66,6 +66,19 @@ class Position:
     safe_flexible: Optional[Money]
     horizon_days: int
     notes: Tuple[str, ...]
+    daily_spend: Tuple[Tuple[date, int], ...] = ()   # last 28 days, oldest first: (day, spend in minor units)
+
+
+def daily_spend(events: Sequence[Event], as_of: datetime, days: int = 28, currency: str = "NGN") -> Tuple[Tuple[date, int], ...]:
+    """Posted spending per Lagos day for the `days` days before as_of (excluding today, like burn). Own transfers and reversals are not spending."""
+    end = lagos_date(as_of)
+    totals = {end - timedelta(days=i): 0 for i in range(1, days + 1)}
+    for e in events:
+        if e.counts_in_flows() and e.amount.minor < 0 and e.amount.currency == currency:
+            d = lagos_date(e.occurred_at)
+            if d in totals:
+                totals[d] += -e.amount.minor
+    return tuple(sorted(totals.items()))
 
 
 def current_position(total: Optional[Money], events: Sequence[Event], as_of: datetime,
@@ -91,4 +104,4 @@ def current_position(total: Optional[Money], events: Sequence[Event], as_of: dat
             ess_h = round_fraction(Fraction(essential_per_day) * horizon, currency)
             flex = safe_flexible(total, oblig, ess_h, cushion, goals_h, Money(0, currency))
     return Position(total, inflow, outflow, net, oblig, len(due), available, needs, goals_h, cushion, flex,
-                    horizon, tuple(notes))
+                    horizon, tuple(notes), daily_spend(events, as_of, 28, currency))
