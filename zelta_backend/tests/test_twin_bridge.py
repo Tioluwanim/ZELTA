@@ -108,3 +108,35 @@ def test_call_maps_upstream_statuses(env, monkeypatch):
         assert e.value.status == expect
     monkeypatch.setattr(svc.httpx, "AsyncClient", client_for(200, {"ok": True}))
     assert asyncio.run(svc.call("/x", {}, "u")) == {"ok": True}
+
+
+def test_gig_catalogue_maps_only_real_open_gigs(env):
+    _, svc = env
+    gigs = [{"id": "g1", "task": "Print 20 copies", "location": "Campus gate", "payout": 4000, "status": "OPEN", "time_estimate": "2 hours"},
+            {"id": "g2", "task": "Mine", "payout": 5000, "status": "OPEN", "extracted_by_uid": "u1"},
+            {"id": "g3", "task": "Done", "payout": 5000, "status": "COMPLETED"},
+            {"id": "g4", "task": "Free", "payout": 0, "status": "OPEN"}, {"id": "g5", "task": "Bad", "payout": "x", "status": "OPEN"},
+            {"id": "", "task": "No id", "payout": 100, "status": "OPEN"}]
+    cat = svc.gig_catalogue(gigs, "u1")
+    assert [c["id"] for c in cat] == ["g1"]
+    assert cat[0]["provenance"] == "sourced" and "not verified" in cat[0]["source"] and cat[0]["expected_benefit_naira"] == "4000.00"
+
+
+def test_opportunities_route_forwards_catalogue_and_never_fabricates(env, monkeypatch):
+    app, svc = env
+    seen = {}
+
+    async def fake_payload(db, uid):
+        return {"accounts": []}
+
+    async def fake_call(path, body, uid):
+        seen.update(path=path, body=body)
+        return {"opportunities": []}
+    monkeypatch.setattr(svc, "payload_for", fake_payload)
+    monkeypatch.setattr(svc, "call", fake_call)
+    monkeypatch.setattr(svc, "load_gigs", lambda db, limit=30: [{"id": "g1", "task": "Print", "payout": 4000, "status": "OPEN"}])
+    r = TestClient(app).get("/api/twin/opportunities", headers={"Authorization": "Bearer x"})
+    assert r.status_code == 200 and seen["path"] == "/brain/v1/opportunities" and seen["body"]["catalogue"][0]["id"] == "g1"
+    monkeypatch.setattr(svc, "load_gigs", lambda db, limit=30: [])
+    TestClient(app).get("/api/twin/opportunities", headers={"Authorization": "Bearer x"})
+    assert seen["body"]["catalogue"] == []

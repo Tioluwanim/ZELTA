@@ -241,6 +241,9 @@ def opportunities(ctx: ToolContext, _: NoArgs) -> Dict[str, Any]:
     return {"opportunities": [{"rank": r.rank, "category": r.opportunity.category, "title": r.opportunity.title,
                                "provenance": r.opportunity.provenance, "source": r.opportunity.source,
                                "expected_benefit": money_out(r.opportunity.expected_benefit),
+                               "id": r.opportunity.id, "rationale": r.opportunity.rationale, "cost": money_out(r.opportunity.cost),
+                               "confidence": r.opportunity.confidence, "eligibility": list(r.opportunity.eligibility),
+                               "expires_at": r.opportunity.expires_at.isoformat() if r.opportunity.expires_at else None,
                                "risk": r.opportunity.risk, "reasons": list(r.reasons)} for r in ranked]}
 
 

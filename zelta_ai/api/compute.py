@@ -3,6 +3,7 @@
 POST /brain/v1/twin/compute   full view: summary, position, buffer, forecast, habits, recommendations
 POST /brain/v1/guardian       PROCEED / CAUTION / PROTECT for one action
 POST /brain/v1/whatif         up to 5 bounded hypothetical scenarios
+POST /brain/v1/opportunities  rank a caller-supplied catalogue (Earn / Save / Grow) against the twin
 POST /brain/v1/agent          one chat turn through the orchestrator (no model unless one is configured)
 
 No database, no state, nothing stored. Authentication is the internal key (the backend authenticates end users and asserts
@@ -25,6 +26,7 @@ from domain.money import Money
 from engines.position import Goal
 from engines.runway import IncomeStream, InvalidScenario, Obligation
 from engines.whatif import Scenario, run_whatif
+from opportunities import BaselineOpportunityEngine, Opportunity
 from financial_twin import FinancialTwinService
 from financial_twin.twin import TwinSnapshot
 from llm import LLMProvider, NullProvider
@@ -156,6 +158,45 @@ class WhatIfIn(TwinInput):
 
 class AgentIn(TwinInput):
     message: str = Field(min_length=1, max_length=500)
+    catalogue: List[OpportunityIn] = Field(default_factory=list, max_length=50)
+
+
+class OpportunityIn(_S):
+    """One catalogue entry. The service never invents entries; provenance rules (sourced needs a source, estimates need
+    confidence, AI ideas carry no benefit) are enforced by the Opportunity model."""
+    id: str = Field(min_length=1, max_length=64)
+    category: str = Field(max_length=8)
+    title: str = Field(min_length=1, max_length=120)
+    provenance: str = Field(max_length=16)
+    rationale: str = Field(min_length=1, max_length=300)
+    source: Optional[str] = Field(None, max_length=200)
+    expected_benefit_naira: Optional[str] = None
+    cost_naira: Optional[str] = None
+    risk: str = Field("unknown", max_length=8)
+    confidence: Optional[float] = None
+    expires_at: Optional[datetime] = None
+    eligibility: List[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("expected_benefit_naira", "cost_naira")
+    @classmethod
+    def _m(cls, v):
+        if v is not None:
+            _money(v)
+        return v
+
+
+class OpportunitiesIn(TwinInput):
+    catalogue: List[OpportunityIn] = Field(default_factory=list, max_length=50)
+
+
+def _catalogue(items: List[OpportunityIn]) -> List[Opportunity]:
+    try:
+        return [Opportunity(o.id, o.category, o.title, o.provenance, o.rationale, o.source,
+                            None if o.expected_benefit_naira is None else _money(o.expected_benefit_naira),
+                            None if o.cost_naira is None else _money(o.cost_naira), o.risk, o.confidence, o.expires_at,
+                            tuple(o.eligibility)) for o in items]
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid opportunity") from None
 
 
 def get_llm() -> LLMProvider:
@@ -197,8 +238,8 @@ def _as_of(inp: TwinInput, now: datetime) -> datetime:
     return ref
 
 
-def _ctx(user_id: str, snap: TwinSnapshot) -> ToolContext:
-    return ToolContext(user_id, snap.as_of, frozenset({"twin:read", "twin:simulate", "opportunities:read"}), snap)
+def _ctx(user_id: str, snap: TwinSnapshot, engine: Any = None) -> ToolContext:
+    return ToolContext(user_id, snap.as_of, frozenset({"twin:read", "twin:simulate", "opportunities:read"}), snap, engine)
 
 
 @router.post("/twin/compute", dependencies=_DEPS, responses=_RESP)
@@ -240,11 +281,23 @@ async def whatif(inp: WhatIfIn, x_user_id: str = Header(..., min_length=1, max_l
         "notes": list(o.notes)} for o in outs]}
 
 
+@router.post("/opportunities", dependencies=_DEPS, responses=_RESP)
+async def opportunities(inp: OpportunitiesIn, x_user_id: str = Header(..., min_length=1, max_length=128), now: datetime = Depends(get_clock)) -> Dict[str, Any]:
+    """Rank the supplied catalogue against this user's twin. Empty catalogue in, empty list out: nothing is generated here."""
+    snap = _build(inp, _as_of(inp, now))
+    ctx = _ctx(x_user_id, snap, BaselineOpportunityEngine(_catalogue(inp.catalogue)))
+    r = build_default_registry().call("list_opportunities", {}, ctx)
+    data = dict(r.data) if r.ok else {"opportunities": []}
+    data.update(as_of=snap.as_of.isoformat(), source="self_reported", ranking="transparent rules, not a validated model")
+    return data
+
+
 @router.post("/agent", dependencies=_DEPS, responses=_RESP)
 async def agent(inp: AgentIn, x_user_id: str = Header(..., min_length=1, max_length=128), now: datetime = Depends(get_clock),
                 llm: LLMProvider = Depends(get_llm)) -> Dict[str, Any]:
     snap = _build(inp, _as_of(inp, now))
-    r = Orchestrator(build_default_registry(), llm).handle(inp.message, _ctx(x_user_id, snap))
+    ctx = _ctx(x_user_id, snap, BaselineOpportunityEngine(_catalogue(inp.catalogue)) if inp.catalogue else None)
+    r = Orchestrator(build_default_registry(), llm).handle(inp.message, ctx)
     return {"text": r.text, "intents": list(r.intents), "used_llm": r.used_llm, "warnings": list(r.warnings),
             "suggestions": list(r.suggestions), "needs_user_input": r.needs_user_input,
             "tools": [{"tool": t.tool, "ok": t.ok} for t in r.trace], "as_of": snap.as_of.isoformat()}

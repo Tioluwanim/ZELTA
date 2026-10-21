@@ -93,3 +93,35 @@ def test_unknown_balance_stays_unknown(client):
     b = client.post("/brain/v1/twin/compute", json=p, headers=H).json()
     assert b["summary"]["total_connected_money"] is None and b["forecast"]["available"] is False
     assert twin_mod  # module imported for clock override symmetry
+
+
+def _opp(**o):
+    base = {"id": "o1", "category": "EARN", "title": "Print and bind 20 copies", "provenance": "sourced", "rationale": "short on cash",
+            "source": "ZELTA gig board", "expected_benefit_naira": "4000", "risk": "unknown"}
+    base.update(o)
+    return base
+
+
+def test_opportunities_rank_the_supplied_catalogue_and_invent_nothing(client):
+    empty = client.post("/brain/v1/opportunities", json=payload(), headers=H).json()
+    assert empty["opportunities"] == [] and empty["ranking"].startswith("transparent rules")
+    r = client.post("/brain/v1/opportunities", json=payload(catalogue=[_opp(), _opp(id="o2", category="GROW", title="Fund X")]), headers=H)
+    items = r.json()["opportunities"]
+    assert r.status_code == 200 and [i["id"] for i in items] == ["o1", "o2"]   # runway is short (<21 days), so earning ranks before growing
+    assert items[0]["provenance"] == "sourced" and items[0]["expected_benefit"]["minor"] == 400000
+
+
+def test_opportunity_provenance_rules_are_enforced_over_http(client):
+    for bad in (_opp(source=None),                                   # sourced needs a source
+                _opp(provenance="ai_suggestion", source=None),       # AI idea may not carry a benefit
+                _opp(provenance="estimate", source=None),            # estimate needs confidence
+                _opp(category="GAMBLE"), _opp(expected_benefit_naira="4000.5.1")):
+        r = client.post("/brain/v1/opportunities", json=payload(catalogue=[bad]), headers=H)
+        assert r.status_code == 422 and set(r.json()) == {"code", "message"}
+
+
+def test_agent_answers_opportunity_questions_from_the_catalogue_only(client):
+    none = client.post("/brain/v1/agent", json=payload(message="any side hustle ideas to earn?"), headers=H).json()
+    assert "No opportunities" in none["text"] or "no opportunity" in none["text"].lower()
+    some = client.post("/brain/v1/agent", json=payload(message="any side hustle ideas to earn?", catalogue=[_opp()]), headers=H).json()
+    assert "Print and bind" in some["text"] and "sourced" in some["text"]

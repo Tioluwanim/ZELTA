@@ -39,6 +39,11 @@ class AgentRequest(_Body):
     message: str = Field(..., min_length=1, max_length=500)
 
 
+def _wants_opportunities(text: str) -> bool:
+    t = text.lower()
+    return any(w in t for w in ("earn", "hustle", "gig", "opportunit", "extra income", "make money"))
+
+
 async def _run(db, user, path, extra=None):
     uid = user["uid"]
     try:
@@ -75,4 +80,13 @@ async def whatif(request: WhatIfRequest, current_user: CurrentUser, db: DB):
 
 @router.post("/agent")
 async def agent(request: AgentRequest, current_user: CurrentUser, db: DB):
-    return {"success": True, "data": await _run(db, current_user, "/brain/v1/agent", {"message": request.message})}
+    catalogue = svc.gig_catalogue(svc.load_gigs(db), current_user["uid"]) if _wants_opportunities(request.message) else []
+    return {"success": True, "data": await _run(db, current_user, "/brain/v1/agent", {"message": request.message, "catalogue": catalogue})}
+
+
+@router.get("/opportunities")
+async def opportunities(current_user: CurrentUser, db: DB):
+    """Earn / Save / Grow options ranked against your Twin. Today the only source is the open gig board."""
+    uid = current_user["uid"]
+    catalogue = svc.gig_catalogue(svc.load_gigs(db), uid)
+    return {"success": True, "data": await _run(db, current_user, "/brain/v1/opportunities", {"catalogue": catalogue})}

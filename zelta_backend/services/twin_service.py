@@ -112,3 +112,36 @@ async def call(path: str, body: Dict[str, Any], uid: str) -> Dict[str, Any]:
 async def payload_for(db: firestore.Client, uid: str) -> Dict[str, Any]:
     wallet, txs, profile = load_inputs(db, uid)
     return build_payload(wallet, txs, profile, datetime.now(timezone.utc))
+
+
+GIG_SOURCE = "ZELTA gig board (posted by another user, not verified by ZELTA)"
+
+
+def gig_catalogue(gigs: List[Dict[str, Any]], uid: str, limit: int = 30) -> List[Dict[str, Any]]:
+    """Open gigs as EARN opportunities. Pure. Only real board entries are mapped; nothing is invented.
+    Skips gigs that are not open, have no positive payout, or were posted by the user themselves."""
+    out: List[Dict[str, Any]] = []
+    for g in gigs:
+        try:
+            pay = Decimal(str(g.get("payout")))
+        except Exception:
+            continue
+        gid, task = str(g.get("id") or ""), str(g.get("task") or "").strip()
+        if (g.get("status") != "OPEN" or not pay.is_finite() or pay <= 0 or pay >= Decimal(10) ** 8 or not gid or not task
+                or g.get("extracted_by_uid") == uid):
+            continue
+        where = str(g.get("location") or "").strip()
+        out.append({"id": gid[:64], "category": "EARN", "title": task[:120], "provenance": "sourced", "source": GIG_SOURCE,
+                    "rationale": ("Paid gig" + (f" at {where}" if where else "") + (f", about {g['time_estimate']}" if g.get("time_estimate") else ""))[:300],
+                    "expected_benefit_naira": naira(pay), "risk": "unknown"})
+        if len(out) >= limit:
+            break
+    return out
+
+
+def load_gigs(db: firestore.Client, limit: int = 30) -> List[Dict[str, Any]]:
+    try:
+        return [d.to_dict() or {} for d in db.collection("gig_board").order_by("extracted_at", direction="DESCENDING").limit(limit).stream()]
+    except Exception:
+        logger.warning("gig board unreadable")
+        return []
