@@ -43,3 +43,41 @@ export interface SavingsSim {
   amber_weeks: number; red_weeks: number; verdict: string; plain_english: string;
 }
 export type TxCategory = "food" | "transport" | "data" | "education" | "side_hustle" | "parent_transfer" | "bursary" | "savings" | "entertainment" | "utilities" | "other";
+
+// ---- Financial Twin (zelta_ai /brain/v1, reached through /api/twin*). Money is {minor (kobo), currency, display}. Unknown is null, never 0. ----
+export interface Money { minor: number; currency: string; display: string }
+export interface Recommendation { kind: string; priority: number; title: string; amount?: Money | null; because: string[]; effect?: string | null; confidence?: string }
+export interface Twin {
+  as_of: string; source: "self_reported";
+  summary: { total_connected_money: Money | null; burn_per_day: Money | null; runway_days: number | null; warnings: string[] };
+  runway: { runway_days: number | null; assumptions?: string[] } | null;
+  cushion: { required_cushion: Money | null; covered: boolean | null; runway_to_cushion_days: number | null } | null;
+  position: {
+    total_connected_money: Money | null; outflow_28d: Money | null; bills_due_in_horizon: Money | null; available_after_bills: Money | null;
+    cushion: Money | null; safe_flexible: Money | null; horizon_days: number; notes: string[]; daily_spend_28d?: { date: string; minor: number }[];
+  } | null;
+  buffer: { status: string; minimum_safe: Money | null; cushion: Money | null; buffer_after_bills: Money | null; flexible_room: Money | null; notes: string[] } | null;
+  forecast: {
+    available: boolean; horizon_days: number; expected_balance: Record<string, Money>; likely_runout_date: string | null; runout_range: string[] | null;
+    upcoming_expenses: { name: string; amount: Money; due: string }[]; first_below_minimum_safe: string | null; notes: string[];
+  } | null;
+  habits: {
+    covered_days: number; category_share_pct: Record<string, number>; focus_weekly_spend: Record<string, Money>;
+    spending_change: string; spending_change_pct: number | null; not_enough_data_for: string[];
+  } | null;
+  recommendations: { recommendations: Recommendation[]; withheld: string[] } | null;
+}
+export type GuardState = "PROCEED" | "CAUTION" | "PROTECT";
+export interface Guardian {
+  state: GuardState; headline: string; verified: boolean; max_proceed_amount: Money | null;
+  factors: { name: string; state: GuardState; detail: string }[];
+}
+export interface WhatIfOutcome {
+  scenario: string; runway_before_days: number | null; runway_after_days: number | null;
+  runout_before: string | null; runout_after: string | null; notes: string[];
+}
+export interface WhatIfResult { feasible: boolean; simulated: boolean; outcomes: WhatIfOutcome[] }
+export interface AgentReply {
+  text: string; intents: string[]; suggestions: string[]; warnings: string[]; used_llm: boolean;
+  needs_user_input: string | null; tools: { tool: string; ok: boolean }[];
+}

@@ -25,3 +25,13 @@ Errors from the backend surface as plain messages with a retry. Nothing is faked
 - Firebase sign-in, the live backend calls and Google sign-in were not tested here (no credentials). Layouts were checked in a browser with sample data at phone and desktop widths.
 - Path step logic compares backend values only (for example free cash against weekly spending); it does no financial maths.
 - Several backend schemas are still student-specific (university, bursary); the UI avoids student-only wording but the data model has not been changed.
+
+## Visual language: "Adire" (Day 12 UI pass)
+
+ZELTA's look comes from Yoruba adire (resist-dyed indigo cloth), not from another app.
+- Palette: warm undyed cotton (`--chalk`), a four-step indigo dye ramp (`--dye-1..4`), danfo yellow for reward, mint/coral for status.
+- Patterns (CSS masks, `.cloth` + `.oniko`/`.alabere`/`.batani`): rings = free money, stitched lines = bills, diamonds = cushion. Meaning never relies on colour alone.
+- Components: `ClothStrip` (balance as bands), `SpendingCloth` (28 days, deeper dye = more spent), `GuardianCard` ("Before you spend"), stitched buttons, hemmed cards, a thread connecting Path steps, Zel in an adire head wrap.
+- Display font Bricolage Grotesque, body Figtree.
+- Data: the Twin tab calls `/api/twin`, `/api/twin/guardian`; the Coach calls `/api/twin/agent` and falls back to `/api/copilot`. Demo mode (`NEXT_DEMO=1`, not `NEXT_PUBLIC_DEMO`) serves labelled sample data.
+- Landing page (`app/page.tsx`): hero, three steps, feature bento, principles, FAQ. It contains no invented statistics or testimonials; sample numbers are labelled.

@@ -2,12 +2,12 @@
 import Link from "next/link";
 import Zel, { type Mood } from "./Zel";
 
-const base = "btn inline-flex items-center justify-center gap-2 rounded-2xl px-5 font-display font-semibold min-h-12 disabled:opacity-50 disabled:cursor-not-allowed select-none text-[17px]";
+const base = "btn inline-flex items-center justify-center gap-2 rounded-[14px] px-5 font-display font-bold min-h-12 disabled:opacity-50 disabled:cursor-not-allowed select-none text-[17px]";
 const variants = {
-  primary: "bg-indigo text-white shadow-[0_4px_0_0_var(--indigo-deep)]",
-  reward: "bg-danfo text-ink shadow-[0_4px_0_0_var(--danfo-deep)]",
-  quiet: "bg-paper text-indigo border-2 border-line shadow-[0_4px_0_0_var(--line)]",
-  danger: "bg-coral text-white shadow-[0_4px_0_0_var(--coral-deep)]",
+  primary: "bg-indigo text-white",
+  reward: "bg-danfo text-ink",
+  quiet: "bg-paper text-indigo border-[1.5px] border-line",
+  danger: "bg-coral text-white",
 } as const;
 type Variant = keyof typeof variants;
 
@@ -18,8 +18,8 @@ export function LinkButton({ href, variant = "primary", className = "", children
   return <Link href={href} className={`${base} ${variants[variant]} ${className}`}>{children}</Link>;
 }
 
-export function Card({ className = "", ...p }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div {...p} className={`rounded-3xl bg-paper border-2 border-line p-5 ${className}`} />;
+export function Card({ className = "", children, ...p }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div {...p} className={`relative overflow-hidden rounded-[22px] bg-paper border-[1.5px] border-line p-5 pt-6 ${className}`}><span aria-hidden className="hem absolute inset-x-3 top-1.5 h-2" />{children}</div>;
 }
 
 export function Pill({ tone = "indigo", children }: { tone?: "indigo" | "mint" | "coral" | "danfo"; children: React.ReactNode }) {

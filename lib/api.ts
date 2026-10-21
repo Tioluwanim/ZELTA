@@ -2,7 +2,7 @@ import { API_URL, DEMO } from "./config";
 import { auth, firebaseReady } from "./firebase";
 import * as demo from "./demo";
 import type {
-  CopilotAnswer, CopilotMessage, Gig, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary,
+  AgentReply, CopilotAnswer, CopilotMessage, Gig, Guardian, Twin, WhatIfResult, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary,
 } from "./types";
 
 export class ApiError extends Error {
@@ -38,6 +38,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   return res.json() as Promise<T>;
 }
+const unwrap = <T,>(r: { data: T } | T): T => (r && typeof r === "object" && "data" in r ? (r as { data: T }).data : (r as T));
 const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(body) });
 
 export const api = {
@@ -54,6 +55,13 @@ export const api = {
   stress: async (): Promise<Stress> => DEMO ? demo.stress() : (await call<{ data: Stress }>("/api/stress")).data,
   ask: async (question: string, history: CopilotMessage[]): Promise<CopilotAnswer> =>
     DEMO ? demo.ask(question) : (await call<{ data: CopilotAnswer }>("/api/copilot", post({ question, conversation_history: history }))).data,
+  twin: async (): Promise<Twin> => DEMO ? demo.twin() : unwrap(await call<{ data: Twin }>("/api/twin")),
+  guardian: async (amount: number, category?: string): Promise<Guardian> =>
+    DEMO ? demo.guardian(amount) : unwrap(await call<{ data: Guardian }>("/api/twin/guardian", post({ amount, category }))),
+  whatif: async (kind: string, amount: number): Promise<WhatIfResult> =>
+    DEMO ? demo.whatif(kind, amount) : unwrap(await call<{ data: WhatIfResult }>("/api/twin/whatif", post({ scenarios: [{ kind, amount }], horizon: 30 }))),
+  agent: async (message: string): Promise<AgentReply> =>
+    DEMO ? demo.agent(message) : unwrap(await call<{ data: AgentReply }>("/api/twin/agent", post({ message }))),
   gigs: async (): Promise<Gig[]> => DEMO ? demo.gigs() : (await call<{ gigs: Gig[] }>("/api/gig/list?status_filter=OPEN")).gigs,
   simulateSavings: async (weekly: number, target: number): Promise<SavingsSim> =>
     DEMO ? demo.simulateSavings(weekly, target)

@@ -37,6 +37,11 @@ export default function Zel({ mood = "happy", size = 96, bob = false, label }: {
       {mood === "cheer" && <><circle cx="14" cy="40" r="3" fill="#ffc21a" /><circle cx="108" cy="34" r="3.5" fill="#1fb178" /><circle cx="104" cy="82" r="2.6" fill="#ff5d5d" /></>}
       {mood === "cheer" && <><path d="M16 66 Q8 52 14 46" stroke="#d99a00" strokeWidth="5" fill="none" strokeLinecap="round" /><path d="M104 66 Q112 52 106 46" stroke="#d99a00" strokeWidth="5" fill="none" strokeLinecap="round" /></>}
       <circle cx="35" cy="73" r="6" fill="#ff8a6b" opacity=".45" /><circle cx="85" cy="73" r="6" fill="#ff8a6b" opacity=".45" />
+      {/* adire head wrap: indigo band with stitched rings */}
+      <path d="M17 44 Q60 10 103 44 Q101 31 88 21 Q60 7 32 21 Q19 31 17 44Z" fill="#25297a" stroke="#12143f" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M26 33 Q60 12 94 33" fill="none" stroke="#f5efe2" strokeWidth="1.8" strokeDasharray="3 4" strokeLinecap="round" opacity=".85" />
+      <circle cx="60" cy="19" r="3.2" fill="none" stroke="#f5efe2" strokeWidth="1.6" /><circle cx="42" cy="25" r="2.4" fill="none" stroke="#f5efe2" strokeWidth="1.4" /><circle cx="78" cy="25" r="2.4" fill="none" stroke="#f5efe2" strokeWidth="1.4" />
+      <path d="M94 24 Q112 20 114 34 Q104 30 98 32Z" fill="#25297a" stroke="#12143f" strokeWidth="2" strokeLinejoin="round" />
       {eyes}{brows}{mouth}
     </svg>
   );
