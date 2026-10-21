@@ -1,5 +1,5 @@
 // Sample data for DEMO mode only (NEXT_PUBLIC_DEMO=1). The UI labels it as sample data. Never used with a real backend.
-import type { AgentReply, CopilotAnswer, Guardian, Twin, WhatIfResult, Gig, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary } from "./types";
+import type { AgentReply, OpportunityList, CopilotAnswer, Guardian, Twin, WhatIfResult, Gig, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary } from "./types";
 
 const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * 864e5).toISOString();
 let profileState: UserProfile = {
@@ -90,3 +90,7 @@ export const agent = (q: string): Promise<AgentReply> => wait({
   text: `Sample answer to “${q}”. At the sample pace your money lasts about 17 days. This is demo data, so connect the backend for your real numbers.`,
   intents: ["runway"], suggestions: ["What if I spend less each week?", "Can I afford ₦5,000?"], warnings: ["Sample data"], used_llm: false, needs_user_input: null,
   tools: [{ tool: "estimate_runway", ok: true }] });
+export const opportunities = (): Promise<OpportunityList> => wait({ ranking: "transparent rules, not a validated model", opportunities: [
+  { id: "x1", rank: 1, category: "EARN", title: "Print and bind 20 project copies", provenance: "sourced", source: "ZELTA gig board (posted by another user, not verified by ZELTA)",
+    rationale: "Paid gig at Campus gate, about 2 hours", expected_benefit: m(4000), cost: null, risk: "unknown",
+    reasons: ["provenance: sourced", "risk: unknown", "runway is short or unknown, so earning and saving come first"], expires_at: null }] });

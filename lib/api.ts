@@ -2,7 +2,7 @@ import { API_URL, DEMO } from "./config";
 import { auth, firebaseReady } from "./firebase";
 import * as demo from "./demo";
 import type {
-  AgentReply, CopilotAnswer, CopilotMessage, Gig, Guardian, Twin, WhatIfResult, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary,
+  AgentReply, CopilotAnswer, CopilotMessage, Gig, Guardian, OpportunityList, Twin, WhatIfResult, ProfilePatch, SavingsSim, Stress, TxCategory, UserProfile, WalletSummary,
 } from "./types";
 
 export class ApiError extends Error {
@@ -62,6 +62,7 @@ export const api = {
     DEMO ? demo.whatif(kind, amount) : unwrap(await call<{ data: WhatIfResult }>("/api/twin/whatif", post({ scenarios: [{ kind, amount }], horizon: 30 }))),
   agent: async (message: string): Promise<AgentReply> =>
     DEMO ? demo.agent(message) : unwrap(await call<{ data: AgentReply }>("/api/twin/agent", post({ message }))),
+  opportunities: async (): Promise<OpportunityList> => DEMO ? demo.opportunities() : unwrap(await call<{ data: OpportunityList }>("/api/twin/opportunities")),
   gigs: async (): Promise<Gig[]> => DEMO ? demo.gigs() : (await call<{ gigs: Gig[] }>("/api/gig/list?status_filter=OPEN")).gigs,
   simulateSavings: async (weekly: number, target: number): Promise<SavingsSim> =>
     DEMO ? demo.simulateSavings(weekly, target)

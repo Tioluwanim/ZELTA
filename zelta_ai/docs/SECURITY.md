@@ -32,3 +32,8 @@ engineering controls at the boundary; compliance is a separate process.
   cybersecurity expectations, and the relevant API-security and OAuth standards (OWASP API Top 10, RFC 9700,
   FAPI 2.0). The earlier research reached these through secondary sources; **the CBN and NDPC primary texts were
   not read**. Have them reviewed by someone qualified before collecting real bank data.
+
+
+## Bank-link lifecycle (Day 14) status
+
+`openbanking/link.py` implements start, complete, sync, webhook and withdraw with consent gating, redacted audit, fail-closed webhook auth and event-id idempotency, tested with fakes. Not done and not claimed: any live Mono call; the real event names and payload shapes (marked UNVERIFIED in code); the code-exchange endpoint (no exchanger is wired, so completing a link raises NotConfigured); persistent consent and audit stores (in-memory only); webhook timestamp-based replay protection; the consent lifetime (90 days is a proposal).

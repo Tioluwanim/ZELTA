@@ -81,3 +81,9 @@ export interface AgentReply {
   text: string; intents: string[]; suggestions: string[]; warnings: string[]; used_llm: boolean;
   needs_user_input: string | null; tools: { tool: string; ok: boolean }[];
 }
+export interface Opportunity {
+  id: string; rank: number; category: "EARN" | "SAVE" | "GROW"; title: string; provenance: "sourced" | "estimate" | "ai_suggestion";
+  source: string | null; rationale: string; expected_benefit: Money | null; cost: Money | null; risk: string; reasons: string[];
+  expires_at: string | null;
+}
+export interface OpportunityList { opportunities: Opportunity[]; ranking: string }

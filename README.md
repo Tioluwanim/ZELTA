@@ -155,7 +155,7 @@ python -m pytest tests -q
 
 Needs `pytest`, `fastapi`, `httpx`, `pydantic`; the backend test also needs the backend's requirements. Legacy tests in `zelta_ai/tests/` (`test_brain.py`, `test_ws.py`, `test_bayesian_engine.py`, and four modules that fail to import) were already failing before this work and are unchanged; see `zelta_ai/docs/RESEARCH.md`.
 
-## The first four days
+## The build days (1 to 15)
 
 | Day | Objective | Delivered |
 |---|---|---|
@@ -169,6 +169,13 @@ Needs `pytest`, `fastapi`, `httpx`, `pydantic`; the backend test also needs the 
 | 7 | Financial Genome ("Your Spending Habits") | `engines/genome.py`: income timing, post-income spend, categories, recurring, weekend and month-end, change; thin data returns reasons, not guesses |
 | 8 | Forecast | `engines/forecast_summary.py`: expected balance, likely runout and range, next-income effect, goal trajectory; explicit `as_of` and timezone |
 | 9 | Cost buffer | `engines/buffer.py`: minimum safe amount, buffer after bills; the forecast reports the first day it dips below minimum or cushion |
+
+| 10 | Recommendations | `engines/recommendations.py`: deterministic rules, each with `because` and withheld reasons |
+| 11 | Guardian | `engines/guardian.py`: PROCEED / CAUTION / PROTECT; now drives the backend intercept check |
+| 12 | What-if | `engines/whatif.py`: up to 5 bounded scenarios |
+| 13 | Opportunities over HTTP | `POST /brain/v1/opportunities` ranks a caller-supplied catalogue; the backend feeds it open gigs as `sourced` EARN entries (marked unverified). Nothing is generated |
+| 14 | Bank-link lifecycle | `openbanking/link.py`: start, complete, sync, webhook, withdraw with consent checks and audit. **Fakes only; no live Mono call has been made** |
+| 15 | Earn screen | "Ranked for you" shows source, risk and reasons per option |
 
 Days 6 to 9 follow the build-guide plan (current state, genome, forecast, cost buffer). Thresholds are proposed, not validated. The agent can answer habits, forecast, buffer and position questions through new tools; none of these are exposed on HTTP yet.
 
