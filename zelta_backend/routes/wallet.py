@@ -190,10 +190,30 @@ async def intercept_check(current_user: CurrentUser, db: DB, request: InterceptC
             verdict = "SAVE"
             message = f"This is {(request.amount/free_cash*100):.0f}% of your free cash. ZELTA recommends: save it."
 
+        # Guardian (the AI service's deterministic engine) decides when it is reachable; the rules above remain
+        # only as a labelled fallback. PROCEED / CAUTION / PROTECT map onto the old verdict names.
+        guardian_result = None
+        engine = "legacy_fallback"
+        try:
+            from services import twin_service as _twin
+            body = await _twin.payload_for(db, uid)
+            body["action"] = {"kind": "spend", "amount_naira": _twin.naira(request.amount), "category": request.category}
+            guardian_result = await _twin.call("/brain/v1/guardian", body, uid)
+            engine = "guardian"
+            state = guardian_result.get("state")
+            should_intercept = state != "PROCEED"
+            verdict = {"PROCEED": "SPEND_SAFELY", "CAUTION": "SAVE", "PROTECT": "HOLD"}.get(state, "SAVE")
+            concerns = [f["detail"] for f in guardian_result.get("factors", []) if f.get("state") != "PROCEED"][:2]
+            message = " ".join([guardian_result.get("headline", "")] + [c[0].upper() + c[1:] + "." for c in concerns]).strip() if should_intercept else ""
+        except Exception as ge:
+            logger.warning("Guardian unavailable, using legacy rules: %s", type(ge).__name__)
+
         return {
             "should_intercept": should_intercept,
             "verdict": verdict,
             "message": message,
+            "engine": engine,
+            "guardian": guardian_result,
             "runway_days": runway_days,
             "streak_days": streak_days,
             "free_cash": free_cash,
@@ -201,11 +221,11 @@ async def intercept_check(current_user: CurrentUser, db: DB, request: InterceptC
         }
     except Exception as e:
         logger.error("Intercept check error uid=%s: %s", uid, e)
-        # Never crash — return safe default
+        # Never crash. Unknown is not safe: report UNVERIFIED instead of SPEND_SAFELY.
         return {
             "should_intercept": False,
-            "verdict": "SPEND_SAFELY",
-            "message": "",
+            "verdict": "UNVERIFIED",
+            "message": "ZELTA could not check this spend right now.",
             "runway_days": 14,
             "streak_days": 0,
             "free_cash": 0,
