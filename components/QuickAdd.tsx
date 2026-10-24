@@ -29,7 +29,7 @@ export default function QuickAdd({ kind, onClose, onDone }: { kind: AddKind; onC
     } catch (err) { setError(err instanceof Error ? err.message : "Could not save. Try again."); setBusy(false); }
   }
   const title = { income: "Log money in", expense: "Log money out", goal: "Set money aside" }[kind];
-  const field = "w-full rounded-2xl border-2 border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
+  const field = "w-full rounded-[14px] border-[1.5px] border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
   return (
     <div className="fixed inset-0 z-50 grid items-end bg-ink/40 md:place-items-center" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="pop mx-auto w-full max-w-md rounded-t-3xl bg-paper p-5 md:rounded-3xl">

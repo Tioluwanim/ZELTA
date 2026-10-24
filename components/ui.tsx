@@ -35,7 +35,7 @@ export function Notice({ mood = "worried", title, children, action }: { mood?: M
   return (
     <Card className="flex flex-col items-center text-center gap-2 py-8" role="status">
       <Zel mood={mood} size={84} />
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-xl font-bold">{title}</h2>
       {children && <p className="text-soft max-w-sm">{children}</p>}
       {action}
     </Card>
