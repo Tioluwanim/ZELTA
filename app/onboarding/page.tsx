@@ -29,7 +29,7 @@ export default function Onboarding() {
 
   const total = 6;
   const moods: Mood[] = ["happy", "think", "think", "think", "happy", "cheer"];
-  const field = "w-full rounded-2xl border-2 border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
+  const field = "w-full rounded-[14px] border-[1.5px] border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
 
   async function finish() {
     setBusy(true); setError(null);
@@ -56,7 +56,7 @@ export default function Onboarding() {
     <fieldset key="s" className="space-y-3"><legend className="mb-1 font-semibold">Where does your money come from?</legend>
       {SOURCES.map(([v, l]) => { const on = sources.includes(v); return (
         <button key={v} type="button" aria-pressed={on} onClick={() => setSources(on ? sources.filter((x) => x !== v) : [...sources, v])}
-          className={`min-h-14 w-full rounded-2xl border-2 px-4 text-left text-[17px] font-semibold ${on ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>{l}</button>); })}</fieldset>,
+          className={`min-h-14 w-full rounded-[14px] border-[1.5px] px-4 text-left text-[17px] font-semibold ${on ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>{l}</button>); })}</fieldset>,
     <label key="i" className="block font-semibold">About how much comes in each month, in naira?
       <input className={`${field} mt-2`} inputMode="numeric" value={income} onChange={(e) => setIncome(e.target.value.replace(/\D/g, ""))} placeholder="45000" /></label>,
     <div key="b" className="space-y-3"><p className="font-semibold">Is a big bill coming up? Fees, rent or a levy.</p>
@@ -65,10 +65,10 @@ export default function Onboarding() {
       <label className="block text-sm font-semibold text-soft">Due date<input type="date" className={`${field} mt-1`} value={bill.due} onChange={(e) => setBill({ ...bill, due: e.target.value })} /></label></div>,
     <fieldset key="g" className="space-y-3"><legend className="mb-1 font-semibold">What matters most right now?</legend>
       {GOALS.map((g) => <button key={g} type="button" aria-pressed={goal === g} onClick={() => setGoal(g)}
-        className={`min-h-14 w-full rounded-2xl border-2 px-4 text-left text-[17px] font-semibold ${goal === g ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>{g}</button>)}</fieldset>,
+        className={`min-h-14 w-full rounded-[14px] border-[1.5px] px-4 text-left text-[17px] font-semibold ${goal === g ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>{g}</button>)}</fieldset>,
     <fieldset key="r" className="space-y-3"><legend className="mb-1 font-semibold">How do you feel about risk?</legend>
       {RISK.map(([v, t, d]) => <button key={v} type="button" aria-pressed={risk === v} onClick={() => setRisk(v)}
-        className={`min-h-14 w-full rounded-2xl border-2 px-4 py-2 text-left ${risk === v ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>
+        className={`min-h-14 w-full rounded-[14px] border-[1.5px] px-4 py-2 text-left ${risk === v ? "border-indigo bg-indigo-tint" : "border-line bg-paper"}`}>
         <span className="block text-[17px] font-semibold">{t}</span><span className="text-soft">{d}</span></button>)}</fieldset>,
   ][step];
 

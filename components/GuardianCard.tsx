@@ -42,7 +42,9 @@ export default function GuardianCard() {
           <div className={`flex items-start gap-3 rounded-2xl p-4 ${look.box}`}>
             <look.Icon size={28} aria-hidden className="mt-0.5 shrink-0" />
             <div><p className="font-display text-xl font-bold">{look.word}</p><p className="text-[17px]">{res.headline}</p>
-              {res.max_proceed_amount && res.state !== "PROCEED" && <p className="mt-1 text-sm">Safe up to about <strong className="num">{kobo(res.max_proceed_amount)}</strong>.</p>}
+              {res.max_proceed_amount && res.state !== "PROCEED" && (res.max_proceed_amount.minor > 0
+                ? <p className="mt-1 text-sm">Safe up to about <strong className="num">{kobo(res.max_proceed_amount)}</strong>.</p>
+                : <p className="mt-1 text-sm">Right now nothing is safe to spend beyond your bills and cushion.</p>)}
               {!res.verified && <p className="mt-1 text-sm">Some of your data is missing, so this is a cautious answer.</p>}</div>
           </div>
           <ul className="space-y-1.5">{res.factors.map((f) => (

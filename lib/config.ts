@@ -11,3 +11,7 @@ export const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
 };
+
+/** Local integration testing only: send this as the Bearer token and skip sign-in. Honoured only when API_URL points at this machine. */
+const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(API_URL);
+export const DEV_BEARER = LOCAL ? (process.env.NEXT_PUBLIC_DEV_BEARER ?? "") : "";

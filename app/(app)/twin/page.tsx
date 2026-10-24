@@ -3,6 +3,7 @@ import { useState } from "react";
 import QuickAdd, { type AddKind } from "@/components/QuickAdd";
 import { ClothStrip, SpendingCloth } from "@/components/Cloth";
 import GuardianCard from "@/components/GuardianCard";
+import WhatIfCard from "@/components/WhatIfCard";
 import { Button, Card, Notice, Pill, Skeleton } from "@/components/ui";
 import { api } from "@/lib/api";
 import { kobo, longDate, naira, shortDate, titleCase } from "@/lib/format";
@@ -37,9 +38,9 @@ export default function TwinPage() {
           {twin.loading ? <Skeleton className="h-28 bg-white/20" /> : days != null ? (
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div><p className="text-lg opacity-80">At this pace your money lasts about</p>
-                <p className="num text-7xl font-extrabold leading-none md:text-8xl">{Math.round(days)}<span className="ml-2 text-3xl font-bold opacity-80">days</span></p>
-                {t?.forecast?.likely_runout_date && <p className="mt-2 text-[17px] opacity-90">Around {longDate(t.forecast.likely_runout_date)}{t.forecast.runout_range && t.forecast.runout_range.length > 1 ? `, between ${longDate(t.forecast.runout_range[0])} and ${longDate(t.forecast.runout_range[t.forecast.runout_range.length - 1])}` : ""}. No new income counted.</p>}</div>
-              <div className="text-right"><p className="opacity-80">In your Twin</p><p className="num text-3xl font-bold">{kobo(t?.summary.total_connected_money)}</p></div>
+                <p className="num text-7xl font-extrabold leading-none md:text-8xl">{Math.round(days)}<span className="ml-2 text-4xl font-extrabold opacity-80">days</span></p>
+                {t?.forecast?.likely_runout_date && <p className="mt-2 text-[17px] opacity-90">Around {longDate(t.forecast.likely_runout_date)}{t.forecast.runout_range && t.forecast.runout_range.length > 1 && t.forecast.runout_range[0] !== t.forecast.runout_range[t.forecast.runout_range.length - 1] ? `, between ${longDate(t.forecast.runout_range[0])} and ${longDate(t.forecast.runout_range[t.forecast.runout_range.length - 1])}` : ""}. No new income counted.</p>}</div>
+              <div className="text-right"><p className="opacity-80">In your Twin</p><p className="num text-4xl font-extrabold">{kobo(t?.summary.total_connected_money)}</p></div>
             </div>
           ) : (
             <div><p className="text-lg opacity-80">Your balance</p><p className="num text-6xl font-extrabold">{naira(w.total_balance)}</p>
@@ -48,6 +49,7 @@ export default function TwinPage() {
         </section>
         {t?.position && t.position.total_connected_money && <Card className="md:col-span-2"><h2 className="mb-3 text-xl font-bold">Your balance, as cloth</h2><ClothStrip position={t.position} /></Card>}
         <GuardianCard />
+        <WhatIfCard />
         {series && series.length > 0 ? <Card><h2 className="mb-3 text-xl font-bold">Last 28 days</h2><SpendingCloth series={series} /></Card>
           : <Card><p className="text-soft">Spending per week</p><p className="num text-4xl font-bold">{naira(w.weekly_burn_rate)}</p></Card>}
         {t?.forecast?.upcoming_expenses && t.forecast.upcoming_expenses.length > 0 && (
@@ -58,7 +60,7 @@ export default function TwinPage() {
             <li key={r.kind}><p className="text-[17px] font-bold">{r.title}</p>{r.effect && <p>{titleCase(r.effect)}.</p>}<p className="text-sm text-soft">Because {r.because.join("; ")}.</p></li>))}</ul></Card>)}
         
         <Card className="md:col-span-2">
-          <h2 className="mb-3 text-xl font-semibold">Where it goes</h2>
+          <h2 className="mb-3 text-xl font-bold">Where it goes</h2>
           {w.spending_heat.length === 0 ? <p className="text-soft">Log a few expenses and your spending breakdown shows here.</p> : (
             <ul className="space-y-3">{w.spending_heat.map((h) => (
               <li key={h.category}><div className="flex items-center justify-between"><span className="font-semibold">{titleCase(h.category)}</span><span className="flex items-center gap-2"><span className="num">{naira(h.amount)}</span><Pill tone={TONE[h.status]}>{WORD[h.status]}</Pill></span></div>
@@ -67,16 +69,16 @@ export default function TwinPage() {
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-xl font-semibold">Market mood</h2>
+          <h2 className="mb-1 text-xl font-bold">Market mood</h2>
           {stress.loading ? <Skeleton className="h-12" /> : stress.data ? <p><Pill tone={stress.data.level === "CALM" ? "mint" : stress.data.level === "MODERATE" ? "danfo" : "coral"}>{titleCase(stress.data.level.toLowerCase())}</Pill> <span className="num ml-2 font-bold">{Math.round(stress.data.stress_index)}</span><span className="text-soft"> out of 100</span></p>
             : <p className="text-soft">Not available right now.</p>}
         </Card>
-        {w.bq_alerts.length > 0 && <Card className="md:col-span-2 bg-danfo-tint"><h2 className="mb-2 text-xl font-semibold">Heads up</h2><ul className="list-disc space-y-1 pl-5">{w.bq_alerts.map((a) => <li key={a}>{a}</li>)}</ul></Card>}
+        {w.bq_alerts.length > 0 && <Card className="md:col-span-2 bg-danfo-tint"><h2 className="mb-2 text-xl font-bold">Heads up</h2><ul className="list-disc space-y-1 pl-5">{w.bq_alerts.map((a) => <li key={a}>{a}</li>)}</ul></Card>}
 
         <Card className="md:col-span-2">
-          <h2 className="mb-3 text-xl font-semibold">Recent activity</h2>
+          <h2 className="mb-3 text-xl font-bold">Recent activity</h2>
           {w.recent_transactions.length === 0 ? <p className="text-soft">Nothing yet. Log money in or out and it shows here.</p> : (
-            <ul className="divide-y-2 divide-line">{w.recent_transactions.slice(0, 8).map((t) => (
+            <ul className="divide-y divide-line">{w.recent_transactions.slice(0, 8).map((t) => (
               <li key={t.id} className="flex items-center justify-between py-3"><div><p className="font-semibold">{t.description || titleCase(t.category)}</p><p className="text-sm text-soft">{titleCase(t.category)} · {shortDate(t.date)}</p></div>
                 <p className={`num text-lg font-bold ${t.type === "income" ? "text-mint-deep" : ""}`}>{t.type === "income" ? "+" : "−"}{naira(t.amount)}</p></li>))}</ul>
           )}

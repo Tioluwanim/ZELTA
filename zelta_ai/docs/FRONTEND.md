@@ -35,3 +35,7 @@ ZELTA's look comes from Yoruba adire (resist-dyed indigo cloth), not from anothe
 - Display font Bricolage Grotesque, body Figtree.
 - Data: the Twin tab calls `/api/twin`, `/api/twin/guardian`; the Coach calls `/api/twin/agent` and falls back to `/api/copilot`. Demo mode (`NEXT_DEMO=1`, not `NEXT_PUBLIC_DEMO`) serves labelled sample data.
 - Landing page (`app/page.tsx`): hero, three steps, feature bento, principles, FAQ. It contains no invented statistics or testimonials; sample numbers are labelled.
+
+## Local end-to-end check
+
+`scripts/local_e2e/` starts the real backend routes and AI service with fake sign-in and fake stored data. Building the frontend with `NEXT_API_URL=http://localhost:8100 NEXT_DEV_BEARER=x` then exercises every call over real HTTP (the dev bearer is ignored unless the API is on localhost). Twin, Guardian, What-if, Coach and Earn were checked this way with no failed requests or console errors. Real Firebase sign-in, Firestore and Mono remain unverified.

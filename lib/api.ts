@@ -1,4 +1,4 @@
-import { API_URL, DEMO } from "./config";
+import { API_URL, DEMO, DEV_BEARER } from "./config";
 import { auth, firebaseReady } from "./firebase";
 import * as demo from "./demo";
 import type {
@@ -12,6 +12,7 @@ export class ApiError extends Error {
 }
 
 async function token(): Promise<string> {
+  if (DEV_BEARER) return DEV_BEARER;
   if (!firebaseReady()) throw new ApiError("Sign-in is not configured.", 401);
   const u = auth().currentUser;
   if (!u) throw new ApiError("Please sign in again.", 401);

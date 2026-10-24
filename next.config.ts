@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   // Map existing Vercel variables to browser-accessible names.
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_API_URL ?? "",
+    NEXT_PUBLIC_DEV_BEARER: process.env.NEXT_DEV_BEARER ?? "",
     NEXT_PUBLIC_DEMO: process.env.NEXT_DEMO ?? "0",
 
     NEXT_PUBLIC_FIREBASE_API_KEY:

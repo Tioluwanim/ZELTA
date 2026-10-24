@@ -11,7 +11,7 @@ export default function EarnPage() {
   const opps = useApi(() => api.opportunities());
   const [weekly, setWeekly] = useState(""); const [target, setTarget] = useState("");
   const [sim, setSim] = useState<SavingsSim | null>(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
-  const field = "mt-1 w-full rounded-2xl border-2 border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
+  const field = "mt-1 w-full rounded-[14px] border-[1.5px] border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
 
   async function run(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErr(null);
@@ -43,7 +43,7 @@ export default function EarnPage() {
               {g.skills_required.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{g.skills_required.map((s) => <Pill key={s}>{s}</Pill>)}</div>}</Card></li>))}</ul>
             : <Notice mood="sleepy" title="No open gigs right now">Check back later. New gigs appear here as they are posted.</Notice>}
       </section>
-      <section><h2 className="mb-3 text-xl font-semibold">How long to reach a savings goal?</h2>
+      <section><h2 className="mb-3 text-xl font-bold">How long to reach a savings goal?</h2>
         <Card><form onSubmit={run} className="grid gap-4 md:grid-cols-2">
           <label className="font-semibold">I can set aside each week (₦)<input className={field} inputMode="numeric" value={weekly} onChange={(e) => setWeekly(e.target.value.replace(/\D/g, ""))} /></label>
           <label className="font-semibold">My goal (₦)<input className={field} inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value.replace(/\D/g, ""))} /></label>

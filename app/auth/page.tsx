@@ -18,12 +18,12 @@ function Form() {
     setBusy(true); setError(null);
     try { await fn(); router.replace("/path"); } catch (e) { setError(friendlyAuthError(e)); } finally { setBusy(false); }
   }
-  const field = "mt-1 w-full rounded-2xl border-2 border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
+  const field = "mt-1 w-full rounded-[14px] border-[1.5px] border-line bg-paper px-4 min-h-12 text-[17px] focus:border-indigo outline-none";
   return (
     <main className="mx-auto grid min-h-dvh max-w-md content-center gap-5 px-5 py-10">
       <div className="flex flex-col items-center gap-1 text-center">
         <Zel mood={error ? "worried" : "happy"} size={96} bob />
-        <h1 className="text-3xl font-bold">{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
+        <h1 className="text-4xl font-extrabold">{mode === "signup" ? "Create your account" : "Welcome back"}</h1>
       </div>
       <Card>
         {!configured ? (
