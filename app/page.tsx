@@ -1,333 +1,165 @@
 "use client";
-
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useSmoothScroll, usePrefersReducedMotion } from "@/hooks/useSmoothScroll";
-import FloatingNav from "@/components/FloatingNav";
-import ScrollProgress from "@/components/ScrollProgress";
-import FutureLabPreview from "@/components/FutureLabPreview";
-import MagneticButton from "@/components/MagneticButton";
+import { useRouter } from "next/navigation";
+import { ArrowRight, Calculator, HandCoins, ShieldCheck } from "lucide-react";
+import Zel from "@/components/Zel";
+import { ClothStrip, SpendingCloth } from "@/components/Cloth";
+import { LinkButton } from "@/components/ui";
+import { DEMO } from "@/lib/config";
+import { useAuth } from "@/lib/auth";
 
-// Matches the app's own tokens
-const EMERALD = "#10b981";
-const EMERALD_DARK = "#047857";
-const RED = "#ef4444";
-const GRAY_LINE = "#d1d5db";
+// Illustrative numbers for the page only. They are labelled as a sample wherever they appear.
+const m = (n: number) => ({ minor: n * 100, currency: "NGN", display: `${n}` });
+const SAMPLE_POS = { total_connected_money: m(53500), outflow_28d: m(60144), bills_due_in_horizon: m(15000), available_after_bills: m(38500), cushion: m(10000), safe_flexible: m(8000), horizon_days: 30, notes: [] };
+const SAMPLE_DAYS = [1800, 0, 2400, 0, 600, 3100, 0, 900, 0, 2000, 1500, 0, 0, 4200, 800, 0, 1200, 2600, 0, 500, 0, 1800, 3500, 0, 700, 0, 1900, 1800]
+  .map((v, i) => ({ date: new Date(2026, 8, 10 + i).toISOString().slice(0, 10), minor: v * 100 }));
+const DYE = { ["--stitch" as string]: "rgba(245,239,226,.10)" };
 
-const heroWords = ["Your", "finances", "already", "have", "a", "shape."];
-const heroWordsAccent = ["ZELTA", "shows", "it", "to", "you", "first."];
-
-const beats = [
-  {
-    eyebrow: "Week one",
-    line: "Most months start fine.",
-  },
-  {
-    eyebrow: "Week three",
-    line: "The Twin sees the bend before you do. Deterministic math catches the dip\u2014not a guessing language model.",
-  },
-  {
-    eyebrow: "Before you spend",
-    line: "\u201CWhat if I buy this laptop now?\u201D Run it through the Future Lab and see the trajectory change before you commit.",
-  },
-  {
-    eyebrow: "When the gap is real",
-    line: "Insight turns into action. The Opportunity Engine matches your shortfall to legitimate, skill-fit gigs.",
-  },
+const STEPS = [
+  { n: "1", t: "Tell Zel what you have", d: "Your balance, what comes in, and the bills you know are coming. It takes about two minutes.", pat: "oniko" },
+  { n: "2", t: "See how long it lasts", d: "Zel works out your runway in days, with the bills counted and the date it could run out.", pat: "alabere" },
+  { n: "3", t: "Check before you spend", d: "Type an amount. Zel says go ahead, careful or hold off, and shows which part of your money decided that.", pat: "batani" },
+];
+const FAQ = [
+  ["Does ZELTA connect to my bank?", "Not yet. Today you enter your balance, income and spending yourself, and every number is labelled as self-reported. Bank connections will come later, only with your permission."],
+  ["Can ZELTA move my money?", "No. It never moves money and never asks you to send money to anyone. It only reads what you give it and tells you what it works out."],
+  ["Where do the answers come from?", "From maths on your own numbers: your balance, bills and past spending. The assistant explains the result in plain words. It does not make up the numbers."],
+  ["What if Zel does not know something?", "It says so. Missing information stays unknown. It is never quietly treated as zero."],
+  ["Is this financial advice?", "No. ZELTA gives you information to decide with. The limits and rules it uses are proposals we are still testing, not guarantees."],
 ];
 
-const pipeline = [
-  {
-    title: "Deterministic engine",
-    body: "Cash-flow math on your actual balance and obligations. No language model touches the numbers.",
-  },
-  {
-    title: "Statistical forecasting",
-    body: "Trend and seasonality drawn from real transaction history, pulled securely through Mono.",
-  },
-  {
-    title: "Plain-language narration",
-    body: "An LLM explains what the math already found. It narrates the result\u2014it doesn't invent it.",
-  },
-  {
-    title: "Future Lab",
-    body: "Simulate a big decision against your real financial trajectory before you actually make it.",
-  },
-  {
-    title: "Opportunity Engine",
-    body: "When a shortfall is coming, get matched to gigs that actually fit your skills and schedule.",
-  },
-];
+function Nav() {
+  return (
+    <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4" aria-label="Main">
+      <Link href="/" className="flex items-center gap-2 font-display text-2xl font-extrabold"><Zel size={40} />ZELTA</Link>
+      <div className="flex items-center gap-2">
+        <Link href="/auth" className="rounded-[12px] px-4 py-2 font-display font-bold hover:bg-white/10">Sign in</Link>
+        <LinkButton href="/auth?mode=signup" variant="reward" className="min-h-10 px-4 text-base">Get started</LinkButton>
+      </div>
+    </nav>
+  );
+}
 
-export default function Home() {
-  const reducedMotion = usePrefersReducedMotion();
-  useSmoothScroll();
-
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const trajectorySectionRef = useRef<HTMLDivElement | null>(null);
-  const pinRef = useRef<HTMLDivElement | null>(null);
-  const trunkPathRef = useRef<SVGPathElement | null>(null);
-  const branchDownRef = useRef<SVGPathElement | null>(null);
-  const branchUpRef = useRef<SVGPathElement | null>(null);
-  const beatRefs = useRef<Array<HTMLDivElement | null>>([]);
-
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-  }, []);
-
-  useEffect(() => {
-    const words = heroRef.current?.querySelectorAll("[data-word]");
-    if (!words || words.length === 0) return;
-
-    if (reducedMotion) {
-      gsap.set(words, { opacity: 1, y: 0 });
-      return;
-    }
-
-    gsap.fromTo(
-      words,
-      { opacity: 0, y: 28 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.045,
-        delay: 0.2,
-      }
-    );
-  }, [reducedMotion]);
-
-  useEffect(() => {
-    if (reducedMotion) return;
-    if (!trajectorySectionRef.current || !pinRef.current) return;
-    if (!trunkPathRef.current || !branchDownRef.current || !branchUpRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const trunk = trunkPathRef.current!;
-      const branchDown = branchDownRef.current!;
-      const branchUp = branchUpRef.current!;
-
-      const trunkLen = trunk.getTotalLength();
-      const downLen = branchDown.getTotalLength();
-      const upLen = branchUp.getTotalLength();
-
-      gsap.set(trunk, { strokeDasharray: trunkLen, strokeDashoffset: trunkLen });
-      gsap.set(branchDown, { strokeDasharray: downLen, strokeDashoffset: downLen, opacity: 0.5 });
-      gsap.set(branchUp, { strokeDasharray: upLen, strokeDashoffset: upLen });
-      gsap.set(beatRefs.current, { opacity: 0, y: 18 });
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: trajectorySectionRef.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 0.6,
-          pin: pinRef.current,
-        },
-      });
-
-      tl.to(trunk, { strokeDashoffset: 0, ease: "none", duration: 4 }, 0);
-      tl.to(branchDown, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
-      tl.to(branchUp, { strokeDashoffset: 0, ease: "none", duration: 2 }, 4);
-      tl.to(branchDown, { opacity: 0.15, duration: 1 }, 6);
-      tl.to(branchUp, { opacity: 1, duration: 1 }, 6);
-
-      beats.forEach((_, i) => {
-        const el = beatRefs.current[i];
-        if (!el) return;
-        const start = i * 2;
-        const isLast = i === beats.length - 1;
-
-        tl.to(el, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, start);
-        if (!isLast) {
-          tl.to(el, { opacity: 1, duration: 0.9 }, start + 0.5);
-          tl.to(el, { opacity: 0, y: -18, duration: 0.5, ease: "power2.in" }, start + 1.5);
-        } else {
-          tl.to(el, { opacity: 1, duration: 1.4 }, start + 0.5);
-        }
-      });
-    }, trajectorySectionRef);
-
-    return () => ctx.revert();
-  }, [reducedMotion]);
+export default function Landing() {
+  const { user, ready } = useAuth();
+  const router = useRouter();
+  useEffect(() => { if (ready && user && !DEMO) router.replace("/path"); }, [ready, user, router]);
 
   return (
-    <div id="top" className="min-h-screen bg-white text-gray-900">
-      <ScrollProgress />
-      <FloatingNav />
-
-      <section ref={heroRef} className="relative mx-auto max-w-6xl px-6 pb-32 pt-28 sm:px-10 sm:pt-40">
-        <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
-          Built for Nigerian university students
-        </p>
-        <h1
-          className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] text-gray-900 sm:text-6xl md:text-7xl"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          {heroWords.map((w, i) => (
-            <span key={`h1-${i}`} data-word className="mr-3 inline-block">
-              {w}
-            </span>
-          ))}
-          <br className="hidden sm:block" />
-          {heroWordsAccent.map((w, i) => (
-            <span
-              key={`h2-${i}`}
-              data-word
-              className="mr-3 inline-block"
-              style={{ color: i === 0 ? EMERALD_DARK : undefined }}
-            >
-              {w}
-            </span>
-          ))}
-        </h1>
-        <p className="mt-8 max-w-xl text-lg leading-relaxed text-gray-600">
-          A continuously updated model of where your money is heading, built from your real transactions
-          \u2014 not a chatbot guessing your balance.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center gap-5">
-          <MagneticButton
-            href="#waitlist"
-            className="rounded-full bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 hover:shadow-emerald-500/30"
-          >
-            Join the waitlist
-          </MagneticButton>
-          <span className="text-sm font-medium text-gray-400">Piloting at OAU</span>
-        </div>
-      </section>
-
-      <div ref={trajectorySectionRef} className={reducedMotion ? "bg-gray-50" : "relative h-[420vh] bg-gray-50"}>
-        <div
-          ref={pinRef}
-          className="relative flex h-screen flex-col justify-center overflow-hidden px-6 sm:px-10"
-        >
-          <svg
-            viewBox="0 0 1000 600"
-            preserveAspectRatio="xMidYMid meet"
-            className="pointer-events-none absolute inset-0 mx-auto h-full w-full max-w-6xl opacity-90"
-          >
-            <path
-              ref={trunkPathRef}
-              d="M 0 260 C 160 240, 260 300, 340 330 C 460 370, 520 430, 620 460"
-              fill="none"
-              stroke={GRAY_LINE}
-              strokeOpacity={reducedMotion ? 0.6 : 1}
-              strokeWidth={4}
-              strokeLinecap="round"
-            />
-            <path
-              ref={branchDownRef}
-              d="M 620 460 C 720 490, 820 520, 1000 560"
-              fill="none"
-              stroke={RED}
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeOpacity={reducedMotion ? 0 : 1}
-            />
-            <path
-              ref={branchUpRef}
-              d="M 620 460 C 740 470, 840 340, 1000 220"
-              fill="none"
-              stroke={EMERALD}
-              strokeWidth={4}
-              strokeLinecap="round"
-            />
-          </svg>
-
-          <div className="relative z-10 mx-auto w-full max-w-xl">
-            {beats.map((beat, i) => (
-              <div
-                key={beat.eyebrow}
-                ref={(el) => {
-                  beatRefs.current[i] = el;
-                }}
-                className={reducedMotion ? "mb-16 opacity-100" : "absolute inset-x-0"}
-              >
-                <span
-                  className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold tracking-wide"
-                  style={{ color: EMERALD_DARK }}
-                >
-                  {beat.eyebrow}
-                </span>
-                <p className="mt-4 text-3xl font-medium leading-[1.3] text-gray-900 sm:text-4xl">
-                  {beat.line}
-                </p>
-              </div>
-            ))}
+    <div>
+      {/* Hero: indigo cloth */}
+      <header className="cloth oniko dyed" style={{ ...DYE, ["--size" as string]: "56px" }}>
+        <Nav />
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-20 pt-8 md:grid-cols-[1.1fr_.9fr] md:pt-14">
+          <div className="space-y-6 text-center md:text-left">
+            <p className="mx-auto inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold tracking-wide md:mx-0">YOUR MONEY, IN DAYS</p>
+            <h1 className="text-5xl font-extrabold leading-[1.02] md:text-7xl">Know how long your money lasts.</h1>
+            <p className="mx-auto max-w-lg text-lg opacity-90 md:mx-0">ZELTA is a money twin for your pocket. It counts your bills, reads your spending, and tells you in plain days how far your money goes, before you spend it.</p>
+            <div className="mx-auto flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row md:mx-0">
+              <LinkButton href="/auth?mode=signup" variant="reward">Start free <ArrowRight size={20} /></LinkButton>
+              {DEMO ? <LinkButton href="/path" variant="quiet">Look around with sample data</LinkButton> : <a href="#how" className="btn inline-flex min-h-12 items-center justify-center rounded-[14px] px-5 font-display font-bold ring-2 ring-white/30">See how it works</a>}
+            </div>
+          </div>
+          <div className="relative mx-auto w-full max-w-sm">
+            <div className="absolute -top-10 right-2 z-10"><Zel mood="cheer" size={112} bob label="Zel, the ZELTA mascot" /></div>
+            <div className="relative rotate-2 rounded-[28px] bg-paper p-6 text-ink shadow-[0_30px_60px_-20px_rgba(0,0,0,.55)]">
+              <p className="text-sm font-bold text-soft">Sample numbers</p>
+              <p className="mt-3 text-soft">At this pace your money lasts about</p>
+              <p className="num text-7xl font-extrabold leading-none text-indigo">17<span className="ml-2 text-2xl font-bold text-soft">days</span></p>
+              <div className="mt-5"><ClothStrip position={SAMPLE_POS} /></div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Try it yourself \u2014 direct manipulation, immediate feedback */}
-      <section className="mx-auto max-w-3xl px-6 py-24 sm:px-10">
-        <FutureLabPreview />
-      </section>
+      <main>
+        {/* How it works */}
+        <section id="how" className="mx-auto max-w-6xl px-5 py-20">
+          <h2 className="max-w-2xl text-4xl font-extrabold md:text-5xl">Three steps. No spreadsheet.</h2>
+          <ol className="mt-10 grid gap-5 md:grid-cols-3">
+            {STEPS.map((s) => (
+              <li key={s.n} className="overflow-hidden rounded-[24px] border-[1.5px] border-line bg-paper">
+                <div className={`cloth ${s.pat} dyed grid h-28 place-items-center`} style={DYE}><span className="num text-6xl font-extrabold">{s.n}</span></div>
+                <div className="p-6"><h3 className="text-2xl font-bold">{s.t}</h3><p className="mt-2 text-[17px] text-soft">{s.d}</p></div>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-      <section id="how-it-works" className="mx-auto max-w-7xl px-6 py-32 sm:px-10 sm:py-40">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Architecture</p>
-          <h2
-            className="mt-4 text-3xl font-semibold leading-tight text-gray-900 sm:text-5xl"
-            style={{ fontFamily: "var(--font-space-grotesk)" }}
-          >
-            Math first. <br className="hidden sm:block" /> Language model last.
-          </h2>
-          <p className="mt-6 text-lg text-gray-600">
-            A deterministic pipeline that builds a picture of your financial future, step by step.
-          </p>
-        </div>
-
-        <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pipeline.map((step, i) => (
-            <div
-              key={step.title}
-              className={`flex flex-col justify-between rounded-3xl border border-gray-100 bg-gray-50/50 p-8 transition-shadow hover:shadow-md hover:shadow-gray-900/5 ${
-                i === 3 || i === 4 ? "sm:col-span-2 lg:col-span-1" : ""
-              }`}
-            >
-              <div>
-                <span
-                  className="mb-6 block text-3xl font-light tabular-nums"
-                  style={{ fontFamily: "var(--font-space-grotesk)", color: EMERALD }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
-                <p className="mt-3 text-base leading-relaxed text-gray-600">{step.body}</p>
+        {/* What Zel does */}
+        <section className="bg-paper py-20">
+          <div className="mx-auto max-w-6xl px-5">
+            <h2 className="max-w-2xl text-4xl font-extrabold md:text-5xl">Made for money that has to stretch.</h2>
+            <div className="mt-10 grid gap-5 md:grid-cols-6">
+              <div className="rounded-[24px] border-[1.5px] border-line bg-chalk p-6 md:col-span-3">
+                <p className="font-display text-sm font-extrabold tracking-wide text-indigo">BEFORE YOU SPEND</p>
+                <h3 className="mt-1 text-2xl font-bold">A clear yes, careful, or hold off.</h3>
+                <div className="mt-5 rounded-2xl bg-coral-tint p-4 text-coral-deep">
+                  <p className="font-display text-lg font-bold">Hold off on ₦20,000</p>
+                  <p>That takes you below your minimum safe amount in about 15 days.</p>
+                </div>
+                <p className="mt-3 text-sm text-soft">Sample. Every answer lists the reasons behind it.</p>
+              </div>
+              <div className="rounded-[24px] border-[1.5px] border-line bg-chalk p-6 md:col-span-3">
+                <p className="font-display text-sm font-extrabold tracking-wide text-indigo">YOUR SPENDING, AS CLOTH</p>
+                <h3 className="mt-1 text-2xl font-bold">28 days at a glance.</h3>
+                <div className="mt-5"><SpendingCloth series={SAMPLE_DAYS} /></div>
+                <p className="mt-3 text-sm text-soft">Sample. Deeper dye means more spent that day.</p>
+              </div>
+              <div className="cloth alabere dyed rounded-[24px] p-6 md:col-span-4" style={DYE}>
+                <p className="font-display text-sm font-extrabold tracking-wide opacity-80">COACH</p>
+                <h3 className="mt-1 text-2xl font-bold">Ask in your own words.</h3>
+                <div className="mt-5 space-y-3">
+                  <p className="ml-auto w-fit max-w-[85%] rounded-[20px] rounded-br-md bg-danfo px-4 py-2.5 font-semibold text-ink">What if I spend ₦2,000 less each week?</p>
+                  <p className="w-fit max-w-[90%] rounded-[20px] rounded-bl-md bg-paper px-4 py-2.5 text-ink">You would run out around 3 days later. That is about 20 days instead of 17.</p>
+                </div>
+              </div>
+              <div className="rounded-[24px] border-[1.5px] border-line bg-danfo-tint p-6 md:col-span-2">
+                <p className="font-display text-sm font-extrabold tracking-wide">YOUR STEP</p>
+                <h3 className="mt-1 text-2xl font-bold">One small thing a day.</h3>
+                <p className="mt-2 text-[17px]">A path of simple steps. Add your bills, log what you spent, set money aside.</p>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <section id="waitlist" className="bg-gray-900 px-6 py-32 text-center sm:px-10 sm:py-40">
-        <h2
-          className="mx-auto max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-5xl"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          See your trajectory before the month does.
-        </h2>
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <MagneticButton
-            href="/sign-up"
-            className="rounded-full bg-emerald-500 px-8 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400 hover:shadow-emerald-500/20"
-          >
-            Join the waitlist
-          </MagneticButton>
-          <Link
-            href="/login"
-            className="rounded-full border border-gray-700 bg-gray-800/50 px-8 py-4 text-sm font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white"
-          >
-            Log in to account
-          </Link>
-        </div>
-      </section>
+        {/* Principles */}
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <h2 className="max-w-2xl text-4xl font-extrabold md:text-5xl">Numbers you can check.</h2>
+          <ul className="mt-10 grid gap-5 md:grid-cols-3">
+            {[{ I: Calculator, t: "Maths first", d: "Your runway, forecast and limits come from calculations on your own data. The assistant only explains them." },
+              { I: HandCoins, t: "Unknown stays unknown", d: "If Zel is missing information, it says so. It never fills a gap with a made-up zero or a guess." },
+              { I: ShieldCheck, t: "You stay in control", d: "ZELTA never moves your money and never asks you to send any. You decide, with better information." }].map(({ I, t, d }) => (
+              <li key={t} className="rounded-[24px] border-[1.5px] border-line bg-paper p-6"><I size={30} className="text-indigo" aria-hidden /><h3 className="mt-3 text-2xl font-bold">{t}</h3><p className="mt-2 text-[17px] text-soft">{d}</p></li>
+            ))}
+          </ul>
+          <p className="mt-6 max-w-2xl text-soft">Today ZELTA works from what you tell it. It is not connected to your bank, and it does not yet claim to be. The thresholds it uses are proposals we are still testing.</p>
+        </section>
 
-      <footer className="bg-gray-900 px-6 py-12 text-center text-sm text-gray-500 sm:px-10">
-        <p>Built by Team Zelta at Obafemi Awolowo University.</p>
+        {/* FAQ */}
+        <section className="mx-auto max-w-3xl px-5 pb-20">
+          <h2 className="text-4xl font-extrabold">Questions</h2>
+          <div className="mt-6 divide-y divide-line rounded-[24px] border-[1.5px] border-line bg-paper">
+            {FAQ.map(([q, a]) => (
+              <details key={q} className="group p-5"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl font-bold">{q}<span aria-hidden className="text-indigo transition group-open:rotate-45">+</span></summary><p className="mt-2 text-[17px] text-soft">{a}</p></details>
+            ))}
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="cloth batani dyed" style={DYE}>
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 px-5 py-20 text-center">
+            <Zel mood="happy" size={110} bob />
+            <h2 className="text-4xl font-extrabold md:text-5xl">Find out how many days you have.</h2>
+            <LinkButton href="/auth?mode=signup" variant="reward">Start free <ArrowRight size={20} /></LinkButton>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-dye-4 px-5 py-8 text-center text-sm text-resist/80">
+        <p>ZELTA gives information, not financial advice. Sample numbers on this page are illustrations.</p>
+        <p className="mt-1">© {new Date().getFullYear()} Team ZELTA</p>
       </footer>
     </div>
   );

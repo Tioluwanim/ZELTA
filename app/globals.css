@@ -1,135 +1,102 @@
 @import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/figtree";
 
-/* ──────────────────────────────────────────────────────── */
-/* LIGHT MODE (default) */
-/* ──────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted-foreground: #737373;
-  --card-bg: #f9fafb;
-  --card-border: #e5e7eb;
-  
-  /* Brand colors */
-  --primary: #3b82f6;
-  --secondary: #8b5cf6;
-  --accent: #06b6d4;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* DARK MODE (fintech-first) */
-/* ──────────────────────────────────────────────────────── */
-.dark {
-  --background: #0f1419;
-  --foreground: #f1f5f9;
-  --muted-foreground: #cbd5e1;
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  
-  /* Brand colors (adjusted for dark) */
-  --primary: #3b82f6;
-  --secondary: #a78bfa;
-  --accent: #06b6d4;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* BASE STYLES */
-/* ──────────────────────────────────────────────────────── */
-* {
-  @apply transition-colors duration-200;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  @apply antialiased font-sans;
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* SCROLLBAR STYLING (dark mode) */
-/* ──────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-slate-900;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 dark:bg-slate-600 rounded-full hover:bg-gray-500 dark:hover:bg-slate-500;
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* FOCUS STYLES */
-/* ──────────────────────────────────────────────────────── */
-:focus-visible {
-  @apply outline-none ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-slate-900;
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
-  @apply rounded-md;
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* ANIMATIONS */
-/* ──────────────────────────────────────────────────────── */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* ──────────────────────────────────────────────────────── */
-/* UTILITIES */
-/* ──────────────────────────────────────────────────────── */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.glass-effect {
-  @apply backdrop-blur-md bg-white/10 dark:bg-slate-900/20 border border-white/20 dark:border-slate-700/30;
-}
-
-.gradient-text {
-  @apply bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent;
+  --chalk: #f5efe2;
+  --paper: #fffcf5;
+  --ink: #14153f;
+  --ink-soft: #5a5a78;
+  --line: #e2d8c3;
+  --indigo: #25297a;
+  --indigo-deep: #12143f;
+  --indigo-tint: #e6e5f6;
+  --danfo: #ffc21a;
+  --danfo-deep: #d99a00;
+  --danfo-tint: #fff3cc;
+  --mint: #1fb178;
+  --mint-deep: #138556;
+  --mint-tint: #dcf5ea;
+  --coral: #ff5d5d;
+  --coral-deep: #c93a3a;
+  --coral-tint: #ffe5e5;
+  --dye-1: #3a3fa6;
+  --dye-2: #25297a;
+  --dye-3: #181a57;
+  --dye-4: #0e1040;
+  --resist: #f5efe2;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card-bg);
+  --color-chalk: var(--chalk);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-indigo: var(--indigo);
+  --color-indigo-deep: var(--indigo-deep);
+  --color-indigo-tint: var(--indigo-tint);
+  --color-danfo: var(--danfo);
+  --color-danfo-deep: var(--danfo-deep);
+  --color-danfo-tint: var(--danfo-tint);
+  --color-mint: var(--mint);
+  --color-mint-deep: var(--mint-deep);
+  --color-mint-tint: var(--mint-tint);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --color-coral-tint: var(--coral-tint);
+  --color-dye-1: var(--dye-1);
+  --color-dye-2: var(--dye-2);
+  --color-dye-3: var(--dye-3);
+  --color-dye-4: var(--dye-4);
+  --color-resist: var(--resist);
+  --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-sans: "Figtree Variable", system-ui, sans-serif;
+}
+
+html { background: var(--chalk); }
+body {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.02em; font-variation-settings: "wdth" 92; }
+.num { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 3px solid var(--indigo); outline-offset: 3px; border-radius: 12px; }
+
+/* Stitched buttons: a dashed "stitch line" runs inside the edge; pressing sinks the button. */
+.btn { position: relative; transition: transform 90ms ease, filter 90ms ease; }
+.btn::after { content: ""; position: absolute; inset: 4px; border-radius: inherit; border: 2px dashed currentColor; opacity: .28; pointer-events: none; }
+.btn:hover:not(:disabled) { filter: brightness(1.06); }
+.btn:active:not(:disabled) { transform: translateY(2px) scale(.99); }
+
+/* Adire patterns. A .cloth element paints a repeat in --stitch over its own background; children sit above. */
+.cloth { position: relative; isolation: isolate; --stitch: rgba(245,239,226,.16); --size: 36px; }
+.cloth::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--stitch);
+  -webkit-mask: var(--pat) 0 0 / var(--size) var(--size); mask: var(--pat) 0 0 / var(--size) var(--size); pointer-events: none; }
+/* oniko: tied rings */
+.oniko { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.6'%3E%3Ccircle cx='18' cy='18' r='13'/%3E%3Ccircle cx='18' cy='18' r='8'/%3E%3Ccircle cx='18' cy='18' r='3' fill='%23000'/%3E%3C/g%3E%3C/svg%3E"); }
+/* alabere: stitched lines */
+.alabere { --size: 24px; --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 6h24M0 18h24' stroke='%23000' stroke-width='1.6' stroke-dasharray='5 4' fill='none'/%3E%3C/svg%3E"); }
+/* batani: stencilled diamonds */
+.batani { --size: 28px; --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 2 26 14 14 26 2 14Z M14 9 19 14 14 19 9 14Z' fill='none' stroke='%23000' stroke-width='1.5' fill-rule='evenodd'/%3E%3C/svg%3E"); }
+.dyed { background: linear-gradient(160deg, var(--dye-1), var(--dye-2) 45%, var(--dye-3)); color: var(--resist); }
+.hem { background-image: radial-gradient(circle, var(--line) 1.4px, transparent 1.6px); background-size: 10px 8px; background-repeat: repeat-x; background-position: 0 0; }
+
+@keyframes dip { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes stitch-in { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+.dip { transform-origin: left center; animation: dip 900ms cubic-bezier(.2,.7,.2,1) both; }
+.dip-y { transform-origin: bottom center; animation: dip-y 700ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes dip-y { from { transform: scaleY(0) } to { transform: scaleY(1) } }
+.thread { stroke-dasharray: 100; animation: stitch-in 1200ms ease-out both; }
+
+@keyframes zel-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0 } 60% { transform: scale(1.04) } 100% { transform: scale(1); opacity: 1 } }
+.zel-bob { animation: zel-bob 2.6s ease-in-out infinite; }
+.pop { animation: pop 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .zel-bob, .pop, .dip, .dip-y, .thread { animation: none; }
+  .btn { transition: none; }
 }

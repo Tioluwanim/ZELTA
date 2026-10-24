@@ -1,42 +1,17 @@
-import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Fira_Code } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import PageTransitionLoader from "@/components/PageTransitionLoader";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const firaCode = Fira_Code({
-  variable: "--font-fira-code",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
+import { AuthProvider } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Zelta AI",
-  description: "Behavioural Quantitative Intelligence",
+  title: "ZELTA",
+  description: "See how long your money lasts, and what to do about it.",
 };
+export const viewport: Viewport = { themeColor: "#2b2d7f", width: "device-width", initialScale: 1 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${firaCode.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <PageTransitionLoader />
-        {children}
-      </body>
+    <html lang="en">
+      <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );
 }
