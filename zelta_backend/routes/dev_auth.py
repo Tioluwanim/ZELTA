@@ -13,7 +13,7 @@ def create_custom_token(uid: str):
         token = auth.create_custom_token(uid)
         return {"custom_token": token.decode("utf-8")}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create custom token: {str(e)}")
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.get("/id-token/{custom_token}")
@@ -42,4 +42,4 @@ def exchange_custom_token(custom_token: str):
 
         return data
     except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Token exchange failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")

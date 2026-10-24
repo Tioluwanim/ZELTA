@@ -178,7 +178,7 @@ async def extract_gig(request: GigExtractRequest, current_user: CurrentUser, db:
 
     except Exception as e:
         logger.error("Gig extraction error uid=%s: %s", uid, e)
-        return GigExtractResponse(success=False, error=str(e))
+        return GigExtractResponse(success=False, error="Could not read that message. Please try again.")
 
 
 @router.get("/list")
@@ -250,7 +250,7 @@ async def claim_gig(gig_id: str, current_user: CurrentUser, db: DB):
         raise
     except Exception as e:
         logger.error("Gig claim error uid=%s gig=%s: %s", uid, gig_id, e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.get("/{gig_id}")
@@ -264,4 +264,4 @@ async def get_gig(gig_id: str, current_user: CurrentUser, db: DB):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")

@@ -25,7 +25,7 @@ async def get_portfolio(current_user: CurrentUser, db: DB):
         logger.error("Portfolio GET error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -51,7 +51,7 @@ async def log_new_decision(
         logger.error("Log decision error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -80,5 +80,5 @@ async def record_outcome(
         logger.error("Update outcome error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )

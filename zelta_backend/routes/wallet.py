@@ -33,7 +33,7 @@ async def get_wallet(current_user: CurrentUser, db: DB):
         logger.error("Wallet GET error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -58,7 +58,7 @@ async def income(current_user: CurrentUser, db: DB, request: AddIncomeRequest):
         logger.error("Add income error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -82,7 +82,7 @@ async def expense(current_user: CurrentUser, db: DB, request: AddExpenseRequest)
         logger.error("Add expense error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -107,7 +107,7 @@ async def lock(current_user: CurrentUser, db: DB, request: LockSavingsRequest):
         logger.error("Lock savings error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 

@@ -29,7 +29,7 @@ async def get_user_profile(current_user: CurrentUser, db: DB):
         logger.error("Profile GET error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -52,5 +52,5 @@ async def update_user_profile(
         logger.error("Profile UPDATE error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )

@@ -143,7 +143,7 @@ async def get_account(current_user: CurrentUser, db: DB):
         return APIResponse(success=True, data=account, message="Account data retrieved (simulated)")
     except Exception as e:
         logger.error("Mono account fetch error uid=%s: %s", uid, e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.get("/transactions")
@@ -211,7 +211,7 @@ async def get_transactions(
             "total": count,
             "page": page,
             "transactions": _generate_transactions(count=count),
-            "meta": {"_simulated": True, "error_fallback": str(e)},
+            "meta": {"_simulated": True, "error_fallback": "provider unavailable"},
         }
 
 
@@ -242,7 +242,7 @@ async def get_identity(current_user: CurrentUser, db: DB):
             message="Identity retrieved (simulated — BVN verification requires real Mono approval)",
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.post("/sync")

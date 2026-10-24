@@ -35,7 +35,7 @@ async def behavioral_snapshot(
         logger.exception("Behavioral snapshot failed: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=f"Could not build behavioral snapshot: {str(exc)}",
+            detail="Could not build your behavioral snapshot. Please try again.",
         )
 
 
@@ -56,5 +56,5 @@ async def behavioral_pattern(
         logger.exception("Behavioral pattern failed: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=f"Could not build behavioral pattern: {str(exc)}",
+            detail="Could not build your behavioral pattern. Please try again.",
         )

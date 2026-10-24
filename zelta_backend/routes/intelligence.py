@@ -24,7 +24,7 @@ async def brain(current_user: CurrentUser, db: DB):
         logger.error("Brain endpoint error uid=%s: %s", current_user["uid"], e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -84,7 +84,7 @@ async def intelligence_full(current_user: CurrentUser, db: DB):
         logger.error("Intelligence endpoint error: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -101,7 +101,7 @@ async def stress_index(current_user: CurrentUser, db: DB):
         logger.error("Stress endpoint error: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -118,7 +118,7 @@ async def bayse_markets(current_user: CurrentUser, db: DB):
         logger.error("Bayse markets error: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -145,7 +145,7 @@ async def bayse_stress(current_user: CurrentUser, db: DB):
         logger.error("Bayse stress error: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -183,5 +183,5 @@ async def bayse_sentiment(current_user: CurrentUser, db: DB):
         logger.error("Bayse sentiment error: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )

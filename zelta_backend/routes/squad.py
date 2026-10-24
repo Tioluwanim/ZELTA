@@ -135,7 +135,7 @@ async def initiate_transfer(
         raise
     except Exception as e:
         logger.error("Squad transfer error uid=%s: %s", uid, e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.post("/payment-link/create")
@@ -188,7 +188,7 @@ async def create_payment_link(
         )
     except Exception as e:
         logger.error("Squad payment link error uid=%s: %s", uid, e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.post("/escrow/lock")
@@ -247,7 +247,7 @@ async def lock_escrow(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.post("/escrow/release")
@@ -292,7 +292,7 @@ async def release_escrow(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
 
 @router.get("/transfer/status/{reference}")
@@ -306,4 +306,4 @@ async def get_transfer_status(reference: str, current_user: CurrentUser, db: DB)
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")

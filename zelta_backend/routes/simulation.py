@@ -50,7 +50,7 @@ async def side_hustle_simulation(
         logger.error("Side hustle simulation error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
 
 
@@ -93,5 +93,5 @@ async def savings_simulation(
         logger.error("Savings simulation error uid=%s: %s", uid, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Something went wrong. Please try again.",
         )
